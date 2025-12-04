@@ -2,185 +2,224 @@ import { View, Text, FlatList, TouchableOpacity, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useSessionStore } from "../../store/useSessionStore";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function HistoryScreen() {
   const router = useRouter();
-  const { sessions, loadSession, deleteSession, clearHistory } =
-    useSessionStore();
 
-  // Formater la date
-  const formatDate = (isoString) => {
-    const date = new Date(isoString);
-    return date.toLocaleDateString("fr-FR", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
+  // Récupération correcte depuis le store (history et non sessions)
+  const history = useSessionStore((state) => state.sessions);
+  const deleteFromHistory = useSessionStore((state) => state.deleteFromHistory);
+  const clearHistory = useSessionStore(
+    (state) =>
+      state.clearHistory || (() => useSessionStore.setState({ history: [] }))
+  ); // Fallback si la fonction n'existe pas
 
-  // Voir une session
+  // Fonction pour charger une vieille session dans la vue résultat
   const handleViewSession = (session) => {
-    loadSession(session.id);
+    // On injecte manuellement la session dans le store comme "currentSession"
+    useSessionStore.setState({ currentSession: session });
     router.push("/session/result");
   };
 
-  // Supprimer une session
   const handleDeleteSession = (sessionId) => {
-    Alert.alert(
-      "Supprimer la session",
-      "Es-tu sûr de vouloir supprimer cette session ?",
-      [
-        { text: "Annuler", style: "cancel" },
-        {
-          text: "Supprimer",
-          style: "destructive",
-          onPress: () => deleteSession(sessionId),
-        },
-      ]
-    );
+    Alert.alert("Supprimer", "Retirer ce match de l'historique ?", [
+      { text: "Annuler", style: "cancel" },
+      {
+        text: "Supprimer",
+        style: "destructive",
+        onPress: () => deleteFromHistory(sessionId),
+      },
+    ]);
   };
 
-  // Tout effacer
   const handleClearAll = () => {
-    Alert.alert(
-      "Tout effacer",
-      "Es-tu sûr de vouloir supprimer tout l'historique ?",
-      [
-        { text: "Annuler", style: "cancel" },
-        {
-          text: "Tout effacer",
-          style: "destructive",
-          onPress: () => clearHistory(),
-        },
-      ]
-    );
+    Alert.alert("Attention", "Vider tout l'historique ?", [
+      { text: "Annuler", style: "cancel" },
+      {
+        text: "Tout effacer",
+        style: "destructive",
+        onPress: () => useSessionStore.setState({ history: [] }),
+      },
+    ]);
   };
 
-  // Rendu d'une session
-  const renderSession = ({ item }) => (
-    <View className="bg-white rounded-xl p-4 mb-3 border border-gray-100">
-      {/* En-tête */}
-      <View className="flex-row items-center justify-between mb-3">
-        <View className="flex-1">
-          <View className="flex-row items-center mb-1">
-            <Ionicons name="calendar" size={16} color="#6C757D" />
-            <Text className="text-gray text-sm ml-2">
-              {formatDate(item.date)}
-            </Text>
+  // Helper pour la date (Jour / Mois)
+  const getDateParts = (isoString) => {
+    const date = new Date(isoString);
+    return {
+      day: date.getDate(),
+      month: date
+        .toLocaleDateString("fr-FR", { month: "short" })
+        .toUpperCase()
+        .replace(".", ""),
+      time: date.toLocaleTimeString("fr-FR", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      year: date.getFullYear(),
+    };
+  };
+
+  // Composant : Carte de Match (Design Ticket)
+  const MatchCard = ({ item }) => {
+    const { day, month, time, year } = getDateParts(item.date);
+    const isBalanced = item.method === "balanced";
+
+    return (
+      <TouchableOpacity
+        className="bg-white rounded-3xl mb-4 shadow-sm border border-gray-100 flex-row overflow-hidden active:scale-[0.98]"
+        onPress={() => handleViewSession(item)}
+      >
+        {/* Colonne Date (Style Ticket) */}
+        <View className="bg-gray-100 w-20 items-center justify-center border-r border-dashed border-gray-300 py-4">
+          <Text className="text-gray-400 text-xs font-bold uppercase mb-1">
+            {month}
+          </Text>
+          <Text className="text-dark font-black text-3xl">{day}</Text>
+          <Text className="text-gray-400 text-xs font-bold mt-1">{year}</Text>
+        </View>
+
+        {/* Contenu Principal */}
+        <View className="flex-1 p-4 justify-between">
+          {/* Header Carte */}
+          <View className="flex-row justify-between items-start mb-2">
+            <View>
+              <Text className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-1">
+                {time} • {item.players.length} JOUEURS
+              </Text>
+              <View className="flex-row items-center">
+                <Ionicons
+                  name={
+                    isBalanced
+                      ? "options"
+                      : item.method === "random"
+                      ? "shuffle"
+                      : "location"
+                  }
+                  size={12}
+                  color="#007BFF"
+                />
+                <Text className="text-primary font-bold text-xs ml-1 uppercase">
+                  Mode{" "}
+                  {isBalanced
+                    ? "Équilibré"
+                    : item.method === "random"
+                    ? "Aléatoire"
+                    : "Postes"}
+                </Text>
+              </View>
+            </View>
+
+            {/* Bouton Supprimer discret */}
+            <TouchableOpacity
+              onPress={() => handleDeleteSession(item.id)}
+              className="bg-gray-50 p-2 rounded-full"
+            >
+              <Ionicons name="trash-outline" size={16} color="#FF3B30" />
+            </TouchableOpacity>
           </View>
-          <View className="flex-row items-center">
-            <Ionicons name="people" size={16} color="#6C757D" />
-            <Text className="text-gray text-sm ml-2">
-              {item.players.length} joueurs
-            </Text>
-            <Text className="text-gray text-sm mx-2">•</Text>
-            <Text className="text-primary text-sm font-semibold">
-              {item.method === "balanced"
-                ? "Équilibré"
-                : item.method === "random"
-                ? "Aléatoire"
-                : "Par postes"}
-            </Text>
+
+          {/* VS Visuel */}
+          <View className="flex-row items-center mt-2">
+            <View className="flex-1 flex-row items-center">
+              <View className="w-2 h-8 bg-blue-500 rounded-full mr-2" />
+              <View>
+                <Text className="font-bold text-dark text-sm">Team A</Text>
+                <View className="flex-row">
+                  {[...Array(Math.round(item.stats?.avgLevelTeamA || 0))].map(
+                    (_, i) => (
+                      <Ionicons key={i} name="star" size={8} color="#FFC107" />
+                    )
+                  )}
+                </View>
+              </View>
+            </View>
+
+            <Text className="text-gray-300 font-black italic mx-2">VS</Text>
+
+            <View className="flex-1 flex-row items-center justify-end">
+              <View className="items-end">
+                <Text className="font-bold text-dark text-sm">Team B</Text>
+                <View className="flex-row">
+                  {[...Array(Math.round(item.stats?.avgLevelTeamB || 0))].map(
+                    (_, i) => (
+                      <Ionicons key={i} name="star" size={8} color="#FFC107" />
+                    )
+                  )}
+                </View>
+              </View>
+              <View className="w-2 h-8 bg-red-500 rounded-full ml-2" />
+            </View>
           </View>
         </View>
-      </View>
-
-      {/* Statistiques équipes */}
-      <View className="flex-row gap-x-2 mb-3">
-        {/* Team A */}
-        <View className="flex-1 bg-blue-50 rounded-lg p-3">
-          <Text className="text-blue-700 font-bold mb-1">Team A</Text>
-          <Text className="text-blue-600 text-xs">
-            {item.teams.teamA.length} joueurs
-          </Text>
-          <Text className="text-blue-600 text-xs">
-            ⭐ {item.stats.avgLevelTeamA}/5
-          </Text>
-        </View>
-
-        {/* Team B */}
-        <View className="flex-1 bg-red-50 rounded-lg p-3">
-          <Text className="text-red-700 font-bold mb-1">Team B</Text>
-          <Text className="text-red-600 text-xs">
-            {item.teams.teamB.length} joueurs
-          </Text>
-          <Text className="text-red-600 text-xs">
-            ⭐ {item.stats.avgLevelTeamB}/5
-          </Text>
-        </View>
-      </View>
-
-      {/* Différence */}
-      <View className="bg-gray-50 rounded-lg p-2 mb-3">
-        <Text className="text-gray text-xs text-center">
-          Différence : {item.stats.difference.toFixed(1)} ⭐
-        </Text>
-      </View>
-
-      {/* Actions */}
-      <View className="flex-row gap-x-2">
-        <TouchableOpacity
-          className="flex-1 bg-primary py-2 rounded-lg flex-row items-center justify-center active:opacity-90"
-          onPress={() => handleViewSession(item)}
-        >
-          <Ionicons name="eye" size={18} color="white" />
-          <Text className="text-white font-semibold ml-2">Voir</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          className="bg-red-50 px-4 py-2 rounded-lg items-center justify-center active:bg-red-100"
-          onPress={() => handleDeleteSession(item.id)}
-        >
-          <Ionicons name="trash" size={18} color="#FF3B30" />
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
+      </TouchableOpacity>
+    );
+  };
 
   return (
-    <View className="flex-1 bg-light">
-      {sessions.length === 0 ? (
-        // État vide
-        <View className="flex-1 items-center justify-center p-6">
-          <View className="bg-gray-200 p-6 rounded-full mb-4">
-            <Ionicons name="time-outline" size={48} color="#6C757D" />
+    <View className="flex-1 bg-gray-50">
+      {/* En-tête */}
+      <View className="bg-white px-4 pt-4 pb-6 rounded-b-[30px] shadow-sm z-10 mb-4">
+        <View className="flex-row items-center justify-between">
+          <View>
+            <Text className="text-gray-400 font-bold text-xs uppercase tracking-widest mb-1">
+              Archives
+            </Text>
+            <Text className="text-3xl font-black text-dark italic tracking-tighter">
+              Match <Text className="text-primary">History</Text>
+            </Text>
           </View>
-          <Text className="text-xl font-bold text-dark mb-2">
-            Aucun historique
+          <View className="bg-blue-50 w-12 h-12 rounded-2xl items-center justify-center">
+            <Ionicons name="time" size={24} color="#007BFF" />
+          </View>
+        </View>
+      </View>
+
+      {/* Liste */}
+      {history?.length === 0 ? (
+        <View className="flex-1 items-center justify-center p-8 opacity-50">
+          <View className="bg-gray-200 p-6 rounded-full mb-4">
+            <Ionicons name="trophy-outline" size={48} color="#9CA3AF" />
+          </View>
+          <Text className="text-xl font-bold text-gray-500">
+            Aucun match joué
           </Text>
-          <Text className="text-gray text-center mb-6">
-            Les sessions que tu sauvegardes apparaîtront ici.
+          <Text className="text-gray-400 text-center mt-2 px-6">
+            Générez des équipes et sauvegardez-les pour remplir votre
+            historique.
           </Text>
           <TouchableOpacity
-            className="bg-primary px-6 py-3 rounded-xl"
+            className="mt-6 bg-primary px-6 py-3 rounded-xl"
             onPress={() => router.push("/session/config")}
           >
-            <Text className="text-white font-bold">Créer une session</Text>
+            <Text className="text-white font-bold">Lancer un match</Text>
           </TouchableOpacity>
         </View>
       ) : (
-        // Liste des sessions
         <>
           <FlatList
-            data={sessions}
+            data={history}
             keyExtractor={(item) => item.id}
-            renderItem={renderSession}
+            renderItem={({ item }) => <MatchCard item={item} />}
             contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+            showsVerticalScrollIndicator={false}
           />
 
-          {/* Bouton Tout effacer (fixe en bas) */}
-          <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
-            <TouchableOpacity
-              className="bg-red-500 py-4 rounded-xl items-center active:opacity-90"
-              onPress={handleClearAll}
-            >
-              <Text className="text-white font-bold">
-                🗑️ Tout effacer l'historique
-              </Text>
-            </TouchableOpacity>
-          </View>
+          {/* Footer : Bouton Clear All */}
+          {history?.length > 0 && (
+            <View className="absolute bottom-8 align-center self-center">
+              <TouchableOpacity
+                onPress={handleClearAll}
+                className="bg-white px-5 py-2 rounded-full shadow-lg border border-gray-100 flex-row items-center"
+              >
+                <Ionicons name="trash-bin" size={16} color="#EF4444" />
+                <Text className="text-red-500 font-bold text-xs ml-2 uppercase">
+                  Vider l'historique
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </>
       )}
     </View>

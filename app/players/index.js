@@ -1,98 +1,148 @@
-import { View, Text, FlatList, TouchableOpacity, Image } from "react-native";
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  TextInput,
+} from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { usePlayerStore } from "../../store/usePlayerStore"; // Import du store
+import { usePlayerStore } from "../../store/usePlayerStore";
+import { useState } from "react";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function PlayersListScreen() {
   const router = useRouter();
-  // Récupérer les joueurs depuis le store
   const players = usePlayerStore((state) => state.players);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  // Fonction pour afficher le badge de poste
-  const renderPositionBadge = (position) => {
-    const colors = {
-      G: "bg-yellow-500", // Gardien
-      D: "bg-blue-500", // Défenseur
-      M: "bg-green-500", // Milieu
-      A: "bg-red-500", // Attaquant
+  // Filtrer les joueurs selon la recherche
+  const filteredPlayers = players.filter((p) =>
+    p.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Badge de poste stylisé
+  const PositionBadge = ({ position }) => {
+    const styles = {
+      G: {
+        bg: "bg-yellow-100",
+        text: "text-yellow-700",
+        border: "border-yellow-200",
+      },
+      D: {
+        bg: "bg-blue-100",
+        text: "text-blue-700",
+        border: "border-blue-200",
+      },
+      M: {
+        bg: "bg-green-100",
+        text: "text-green-700",
+        border: "border-green-200",
+      },
+      A: { bg: "bg-red-100", text: "text-red-700", border: "border-red-200" },
     };
+    const style = styles[position] || styles.M;
+
     return (
       <View
-        className={`${
-          colors[position] || "bg-gray-500"
-        } w-8 h-8 rounded-full items-center justify-center mr-3`}
+        className={`${style.bg} ${style.border} border w-10 h-10 rounded-xl items-center justify-center mr-4`}
       >
-        <Text className="text-white font-bold">{position}</Text>
+        <Text className={`${style.text} font-black text-lg`}>{position}</Text>
       </View>
     );
   };
 
   return (
-    <View className="flex-1 bg-light">
-      {/* Liste des joueurs */}
-      {players.length === 0 ? (
-        // État vide (Empty State)
-        <View className="flex-1 items-center justify-center p-8">
-          <View className="bg-gray-200 p-6 rounded-full mb-4">
-            <Ionicons name="people-outline" size={48} color="#6C757D" />
-          </View>
-          <Text className="text-xl font-bold text-dark mb-2">Aucun joueur</Text>
-          <Text className="text-gray text-center mb-6">
-            Ajoutez vos amis pour commencer à créer des équipes équitables.
+    <View className="flex-1 bg-gray-50">
+      {/* En-tête avec Recherche */}
+      <View className="bg-white px-4 pt-4 pb-4 rounded-b-[30px] shadow-sm z-10">
+        <View className="flex-row items-center justify-between mb-4">
+          <Text className="text-3xl font-black text-dark italic tracking-tighter">
+            Effectif <Text className="text-primary">Pro</Text>
           </Text>
-          <TouchableOpacity
-            className="bg-primary px-6 py-3 rounded-xl flex-row items-center"
-            onPress={() => router.push("/players/new")}
-          >
-            <Ionicons name="add" size={24} color="white" className="mr-2" />
-            <Text className="text-white font-bold">Ajouter un joueur</Text>
-          </TouchableOpacity>
+          <View className="bg-gray-100 px-3 py-1 rounded-full">
+            <Text className="text-gray-500 font-bold text-xs">
+              {players.length} Joueurs
+            </Text>
+          </View>
+        </View>
+
+        {/* Barre de recherche */}
+        <View className="bg-gray-100 flex-row items-center px-4 py-3 rounded-2xl border border-gray-200">
+          <Ionicons name="search" size={20} color="#9CA3AF" />
+          <TextInput
+            placeholder="Rechercher un joueur..."
+            className="flex-1 ml-3 font-medium text-dark"
+            placeholderTextColor="#9CA3AF"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery("")}>
+              <Ionicons name="close-circle" size={20} color="#9CA3AF" />
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+
+      {/* Liste */}
+      {players.length === 0 ? (
+        <View className="flex-1 items-center justify-center p-8 opacity-60">
+          <Ionicons name="people" size={64} color="#D1D5DB" />
+          <Text className="text-xl font-bold text-gray-400 mt-4 text-center">
+            Le vestiaire est vide.
+          </Text>
+          <Text className="text-gray-400 text-center mt-2">
+            Ajoute ton premier joueur pour commencer.
+          </Text>
         </View>
       ) : (
-        // Liste remplie
         <FlatList
-          data={players}
+          data={filteredPlayers}
           keyExtractor={(item) => item.id}
           contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+          ListEmptyComponent={
+            <Text className="text-center text-gray-400 mt-10">
+              Aucun joueur trouvé pour "{searchQuery}"
+            </Text>
+          }
           renderItem={({ item }) => (
             <TouchableOpacity
-              className="bg-white p-4 rounded-xl mb-3 shadow-sm flex-row items-center border border-gray-100"
+              className="bg-white p-4 rounded-2xl mb-3 shadow-sm flex-row items-center border border-gray-100 active:scale-[0.98]"
               onPress={() => router.push(`/players/${item.id}`)}
             >
-              {/* Badge Poste */}
-              {renderPositionBadge(item.position)}
+              <PositionBadge position={item.position} />
 
-              {/* Infos Joueur */}
               <View className="flex-1">
                 <Text className="text-lg font-bold text-dark">{item.name}</Text>
-                <View className="flex-row items-center">
-                  {/* Affichage des étoiles de niveau */}
-                  {[...Array(5)].map((_, i) => (
-                    <Ionicons
-                      key={i}
-                      name={i < item.level ? "star" : "star-outline"}
-                      size={14}
-                      color="#FFC107"
-                    />
-                  ))}
+                <View className="flex-row items-center mt-1">
+                  {/* Indicateur de niveau visuel (Barre de progression style jeu vidéo) */}
+                  <View className="flex-row gap-0.5">
+                    {[1, 2, 3, 4, 5].map((lvl) => (
+                      <View
+                        key={lvl}
+                        className={`h-1.5 w-6 rounded-full ${
+                          lvl <= item.level ? "bg-primary" : "bg-gray-200"
+                        }`}
+                      />
+                    ))}
+                  </View>
                 </View>
               </View>
 
-              <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
+              <Ionicons name="chevron-forward" size={20} color="#E5E7EB" />
             </TouchableOpacity>
           )}
         />
       )}
 
-      {/* Bouton Flottant (FAB) pour ajouter */}
-      {players.length > 0 && (
-        <TouchableOpacity
-          className="absolute bottom-8 right-6 bg-primary w-14 h-14 rounded-full items-center justify-center shadow-lg"
-          onPress={() => router.push("/players/new")} // "new" servira d'ID spécial
-        >
-          <Ionicons name="add" size={32} color="white" />
-        </TouchableOpacity>
-      )}
+      {/* FAB (Floating Action Button) */}
+      <TouchableOpacity
+        className="absolute bottom-8 right-6 bg-dark w-16 h-16 rounded-full items-center justify-center shadow-2xl border-4 border-white/20"
+        onPress={() => router.push("/players/new")}
+      >
+        <Ionicons name="add" size={32} color="white" />
+      </TouchableOpacity>
     </View>
   );
 }

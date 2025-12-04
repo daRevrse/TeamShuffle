@@ -4,6 +4,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  FlatList,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -11,242 +12,242 @@ import { Ionicons } from "@expo/vector-icons";
 import { usePlayerStore } from "../../store/usePlayerStore";
 import { useSessionStore } from "../../store/useSessionStore";
 import { TeamGenerator } from "../../utils/teamGenerator";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function SessionConfigScreen() {
   const router = useRouter();
   const { players } = usePlayerStore();
   const { createSession } = useSessionStore();
 
-  // États locaux
+  // On utilise un Set pour gérer la sélection performante
   const [selectedPlayers, setSelectedPlayers] = useState(new Set());
   const [method, setMethod] = useState("balanced");
 
-  // Méthodes de génération disponibles
   const methods = [
     {
       id: "balanced",
       name: "Équilibré",
-      icon: "scale-outline",
-      description: "Répartition par niveau",
-      color: "bg-success",
+      icon: "options",
+      desc: "Niveau égal",
+      color: "text-blue-500",
+      bg: "bg-blue-50",
     },
     {
       id: "random",
       name: "Aléatoire",
-      icon: "shuffle-outline",
-      description: "Totalement random",
-      color: "bg-warning",
+      icon: "shuffle",
+      desc: "100% Hasard",
+      color: "text-orange-500",
+      bg: "bg-orange-50",
     },
     {
       id: "position",
-      name: "Par postes",
-      icon: "grid-outline",
-      description: "Équilibre G/D/M/A",
-      color: "bg-primary",
+      name: "Par Postes",
+      icon: "football",
+      desc: "Structure tactique",
+      color: "text-green-500",
+      bg: "bg-green-50",
     },
   ];
 
-  // Toggle sélection d'un joueur
-  const togglePlayer = (playerId) => {
-    const newSet = new Set(selectedPlayers);
-    if (newSet.has(playerId)) {
-      newSet.delete(playerId);
-    } else {
-      newSet.add(playerId);
-    }
-    setSelectedPlayers(newSet);
+  const togglePlayer = (id) => {
+    const next = new Set(selectedPlayers);
+    next.has(id) ? next.delete(id) : next.add(id);
+    setSelectedPlayers(next);
   };
 
-  // Tout sélectionner / Tout désélectionner
   const toggleAll = () => {
-    if (selectedPlayers.size === players.length) {
-      setSelectedPlayers(new Set());
-    } else {
-      setSelectedPlayers(new Set(players.map((p) => p.id)));
-    }
+    setSelectedPlayers(
+      selectedPlayers.size === players.length
+        ? new Set()
+        : new Set(players.map((p) => p.id))
+    );
   };
 
-  // Générer les équipes
   const handleGenerate = () => {
-    if (selectedPlayers.size < 2) {
-      Alert.alert(
-        "Pas assez de joueurs",
-        "Sélectionne au moins 2 joueurs pour créer des équipes."
-      );
-      return;
-    }
+    if (selectedPlayers.size < 2)
+      return Alert.alert("Pas assez de joueurs", "Il faut être au moins 2 !");
 
-    // Filtrer les joueurs sélectionnés
     const activePlayers = players.filter((p) => selectedPlayers.has(p.id));
 
     try {
-      // Générer les équipes selon la méthode choisie
       const teams = TeamGenerator.generate(activePlayers, method);
-
-      // Créer la session
       createSession(activePlayers, teams, method);
-
-      // Naviguer vers l'écran de résultat
       router.push("/session/result");
     } catch (error) {
       Alert.alert("Erreur", error.message);
     }
   };
 
-  // Badge de poste
-  const renderPositionBadge = (position) => {
-    const colors = {
-      G: "bg-yellow-500",
-      D: "bg-blue-500",
-      M: "bg-green-500",
-      A: "bg-red-500",
-    };
-    return (
-      <View
-        className={`${
-          colors[position] || "bg-gray-500"
-        } w-7 h-7 rounded-full items-center justify-center mr-3`}
-      >
-        <Text className="text-white font-bold text-xs">{position}</Text>
-      </View>
-    );
-  };
-
   return (
-    <View className="flex-1 bg-light">
-      <ScrollView className="flex-1" contentContainerStyle={{ padding: 16 }}>
-        {/* Section : Joueurs disponibles */}
-        <View className="mb-6">
-          <View className="flex-row items-center justify-between mb-3">
-            <Text className="text-lg font-bold text-dark">
-              Joueurs disponibles ({selectedPlayers.size}/{players.length})
+    <View className="flex-1 bg-gray-50">
+      {/* En-tête Fixe */}
+      <View className="bg-white px-4 pt-4 pb-4 rounded-b-[30px] shadow-sm z-10 mb-2">
+        <View className="flex-row items-center justify-between mb-2">
+          <View>
+            <Text className="text-gray-400 font-bold text-xs uppercase tracking-widest mb-1">
+              Configuration
             </Text>
-            <TouchableOpacity
-              className="bg-primary/10 px-4 py-2 rounded-lg"
-              onPress={toggleAll}
-            >
-              <Text className="text-primary font-semibold text-sm">
-                {selectedPlayers.size === players.length
-                  ? "Tout déselectionner"
-                  : "Tout sélectionner"}
+            <Text className="text-3xl font-black text-dark italic tracking-tighter">
+              Match <Text className="text-primary">Setup</Text>
+            </Text>
+          </View>
+          <TouchableOpacity
+            onPress={toggleAll}
+            className="bg-gray-100 px-3 py-2 rounded-xl"
+          >
+            <Text className="text-primary font-bold text-xs">
+              {selectedPlayers.size === players.length
+                ? "Tout décocher"
+                : "Tout cocher"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Barre de progression des joueurs */}
+        <View className="bg-gray-100 h-2 rounded-full overflow-hidden mt-1">
+          <View
+            className="bg-primary h-full rounded-full"
+            style={{
+              width: `${
+                (selectedPlayers.size / Math.max(players.length, 1)) * 100
+              }%`,
+            }}
+          />
+        </View>
+        <Text className="text-right text-xs font-bold text-gray-400 mt-1">
+          {selectedPlayers.size} / {players.length} Joueurs prêts
+        </Text>
+      </View>
+
+      <ScrollView
+        className="flex-1 px-4"
+        contentContainerStyle={{ paddingBottom: 100 }}
+      >
+        {/* Section 1 : Mode de Jeu (Cartes Horizontales) */}
+        <Text className="font-bold text-dark text-lg mb-3 mt-2 ml-1">
+          Stratégie de tirage
+        </Text>
+        <View className="flex-row gap-3 mb-6">
+          {methods.map((m) => {
+            const isActive = method === m.id;
+            return (
+              <TouchableOpacity
+                key={m.id}
+                onPress={() => setMethod(m.id)}
+                className={`flex-1 p-3 rounded-2xl border-2 items-center justify-center ${
+                  isActive
+                    ? "bg-white border-primary shadow-md"
+                    : "bg-white border-transparent"
+                }`}
+              >
+                <View className={`${m.bg} p-2 rounded-full mb-2`}>
+                  <Ionicons
+                    name={m.icon}
+                    size={20}
+                    color={isActive ? "#007BFF" : "#9CA3AF"}
+                  />
+                </View>
+                <Text
+                  className={`font-bold text-xs mb-0.5 ${
+                    isActive ? "text-dark" : "text-gray-400"
+                  }`}
+                >
+                  {m.name}
+                </Text>
+                <Text className="text-[10px] text-gray-400 text-center leading-3">
+                  {m.desc}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        {/* Section 2 : Liste des Joueurs */}
+        <Text className="font-bold text-dark text-lg mb-3 ml-1">
+          Feuille de match
+        </Text>
+        {players.length === 0 ? (
+          <View className="bg-white border-2 border-dashed border-gray-200 rounded-2xl p-8 items-center">
+            <Text className="text-gray-400 font-bold mb-2">
+              Aucun joueur dans l'effectif
+            </Text>
+            <TouchableOpacity onPress={() => router.push("/players/new")}>
+              <Text className="text-primary font-bold">
+                + Ajouter un joueur
               </Text>
             </TouchableOpacity>
           </View>
-
-          {players.length === 0 ? (
-            <View className="bg-white p-6 rounded-xl items-center">
-              <Ionicons name="people-outline" size={48} color="#6C757D" />
-              <Text className="text-gray text-center mt-3">
-                Aucun joueur. Ajoute-en d'abord !
-              </Text>
-              <TouchableOpacity
-                className="bg-primary px-4 py-2 rounded-lg mt-3"
-                onPress={() => router.push("/players")}
-              >
-                <Text className="text-white font-semibold">Gérer les joueurs</Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <View className="gap-y-2">
-              {players.map((player) => (
+        ) : (
+          <View className="bg-white rounded-2xl p-2 shadow-sm">
+            {players.map((player) => {
+              const isSelected = selectedPlayers.has(player.id);
+              return (
                 <TouchableOpacity
                   key={player.id}
-                  className={`bg-white p-4 rounded-xl flex-row items-center border-2 ${
-                    selectedPlayers.has(player.id)
-                      ? "border-success bg-success/5"
-                      : "border-transparent"
-                  }`}
                   onPress={() => togglePlayer(player.id)}
+                  className={`flex-row items-center p-3 mb-1 rounded-xl transition-all ${
+                    isSelected ? "bg-blue-50/50" : "bg-white"
+                  }`}
                 >
-                  {/* Checkbox */}
+                  {/* Checkbox Custom */}
                   <View
-                    className={`w-6 h-6 rounded-full border-2 mr-3 items-center justify-center ${
-                      selectedPlayers.has(player.id)
-                        ? "bg-success border-success"
-                        : "border-gray-300"
+                    className={`w-6 h-6 rounded-lg border-2 mr-3 items-center justify-center ${
+                      isSelected
+                        ? "bg-primary border-primary"
+                        : "border-gray-200 bg-gray-50"
                     }`}
                   >
-                    {selectedPlayers.has(player.id) && (
-                      <Ionicons name="checkmark" size={16} color="white" />
+                    {isSelected && (
+                      <Ionicons name="checkmark" size={14} color="white" />
                     )}
                   </View>
 
-                  {/* Badge Poste */}
-                  {renderPositionBadge(player.position)}
+                  <View className="flex-1 flex-row items-center justify-between">
+                    <View>
+                      <Text
+                        className={`font-bold text-base ${
+                          isSelected ? "text-dark" : "text-gray-400"
+                        }`}
+                      >
+                        {player.name}
+                      </Text>
+                      <Text className="text-xs text-gray-400 font-medium">
+                        {player.position} • Niv {player.level}
+                      </Text>
+                    </View>
 
-                  {/* Infos Joueur */}
-                  <View className="flex-1">
-                    <Text className="text-base font-bold text-dark">
-                      {player.name}
-                    </Text>
-                    <View className="flex-row items-center mt-1">
-                      {[...Array(5)].map((_, i) => (
-                        <Ionicons
+                    {/* Indicateur visuel Niveau */}
+                    <View className="flex-row">
+                      {[...Array(player.level)].map((_, i) => (
+                        <View
                           key={i}
-                          name={i < player.level ? "star" : "star-outline"}
-                          size={12}
-                          color="#FFC107"
+                          className={`w-1 h-3 ml-0.5 rounded-full ${
+                            isSelected ? "bg-yellow-400" : "bg-gray-200"
+                          }`}
                         />
                       ))}
                     </View>
                   </View>
                 </TouchableOpacity>
-              ))}
-            </View>
-          )}
-        </View>
-
-        {/* Section : Méthode de génération */}
-        <View className="mb-6">
-          <Text className="text-lg font-bold text-dark mb-3">
-            Méthode de génération
-          </Text>
-          <View className="gap-y-3">
-            {methods.map((m) => (
-              <TouchableOpacity
-                key={m.id}
-                className={`bg-white p-4 rounded-xl border-2 ${
-                  method === m.id
-                    ? "border-primary bg-primary/5"
-                    : "border-transparent"
-                }`}
-                onPress={() => setMethod(m.id)}
-              >
-                <View className="flex-row items-center">
-                  <View
-                    className={`${m.color} w-12 h-12 rounded-full items-center justify-center mr-4`}
-                  >
-                    <Ionicons name={m.icon} size={24} color="white" />
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-base font-bold text-dark">
-                      {m.name}
-                    </Text>
-                    <Text className="text-gray text-sm">{m.description}</Text>
-                  </View>
-                  {method === m.id && (
-                    <Ionicons name="checkmark-circle" size={24} color="#007BFF" />
-                  )}
-                </View>
-              </TouchableOpacity>
-            ))}
+              );
+            })}
           </View>
-        </View>
+        )}
       </ScrollView>
 
-      {/* Bouton Générer (fixe en bas) */}
-      <View className="bg-white border-t border-gray-200 p-4">
+      {/* Footer Flottant */}
+      <View className="absolute bottom-6 left-4 right-4">
         <TouchableOpacity
-          className={`py-4 rounded-2xl items-center shadow-lg ${
-            selectedPlayers.size < 2
-              ? "bg-gray-300"
-              : "bg-primary active:opacity-90"
+          className={`w-full py-4 rounded-2xl shadow-xl flex-row items-center justify-center ${
+            selectedPlayers.size < 2 ? "bg-gray-800 opacity-50" : "bg-dark"
           }`}
-          onPress={handleGenerate}
           disabled={selectedPlayers.size < 2}
+          onPress={handleGenerate}
         >
-          <Text className="text-white font-bold text-lg">
-            ⚽ Générer les équipes
+          <Ionicons name="flash" size={20} color="#FACC15" className="mr-2" />
+          <Text className="text-white text-lg font-black uppercase tracking-wider ml-2">
+            Lancer le match
           </Text>
         </TouchableOpacity>
       </View>
