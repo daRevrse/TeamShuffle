@@ -14,12 +14,14 @@ Application mobile React Native pour générer automatiquement des équipes de f
 ### ✅ MVP v1.0 Implémenté
 
 - **Gestion des joueurs**
+
   - Ajout, modification et suppression
   - Nom, niveau (1-5 étoiles), poste (G/D/M/A)
   - Liste avec recherche et filtres
   - Persistence locale avec AsyncStorage
 
 - **Génération d'équipes**
+
   - 3 algorithmes de génération :
     - ⚖️ **Équilibré** : Balance par niveau
     - 🎲 **Aléatoire** : Distribution random
@@ -29,6 +31,7 @@ Application mobile React Native pour générer automatiquement des équipes de f
   - Fonction "Remélanger"
 
 - **Historique des sessions**
+
   - Sauvegarde automatique
   - Affichage des stats (date, joueurs, méthode)
   - Rechargement des sessions passées
@@ -54,7 +57,7 @@ Application mobile React Native pour générer automatiquement des équipes de f
 
 ```bash
 # 1. Cloner le projet
-git clone https://github.com/your-username/teamshuffle.git
+git clone https://github.com/daRevrse/TeamShuffle.git
 cd teamshuffle
 
 # 2. Installer les dépendances
@@ -141,14 +144,17 @@ TeamShuffle/
 ## 🧮 Algorithmes
 
 ### Aléatoire 🎲
+
 Distribution totalement random des joueurs.
 
 ### Équilibré ⚖️
+
 1. Tri des joueurs par niveau (décroissant)
 2. Distribution alternée en équilibrant le niveau total
 3. Snake draft pour minimiser la différence
 
 ### Par Postes 📍
+
 1. Distribution équitable par poste (G, D, M, A)
 2. Chaque équipe reçoit des joueurs de chaque poste
 3. Alternance pour les postes impairs
@@ -196,12 +202,14 @@ lsof -ti:8081 | xargs kill -9
 ## 🔜 Roadmap
 
 ### v1.1 (À venir)
+
 - [ ] Partage des équipes (screenshot)
 - [ ] Animations et transitions
 - [ ] Toast notifications
 - [ ] Haptic feedback
 
 ### v2.0 (Futur)
+
 - [ ] Statistiques avancées
 - [ ] Mode 3+ équipes
 - [ ] Thème sombre
@@ -246,8 +254,9 @@ Développé avec ❤️ pour les amateurs de football
 ## 📞 Support
 
 Pour toute question ou problème :
-- Créer une [issue](https://github.com/your-username/teamshuffle/issues)
-- Email : support@teamshuffle.app
+
+- Créer une [issue](https://github.com/daRevrse/TeamShuffle/issues)
+- Email : support@flowkraftagency.com
 
 ---
 
