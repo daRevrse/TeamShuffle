@@ -6,7 +6,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: "#007BFF", // Bleu
+        primary: "#000000", // Bleu
         success: "#34C759", // Vert
         danger: "#FF3B30", // Rouge
         warning: "#FFC107", // Jaune

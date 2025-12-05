@@ -21,14 +21,18 @@ export default function HomeScreen() {
 
         {/* Logo & Titre */}
         <View className="items-center mb-4">
-          <View className="bg-white/20 p-4 rounded-2xl backdrop-blur-md mb-3 border border-white/10">
-            <Ionicons name="football" size={42} color="white" />
+          <View className="mb-4 shadow-lg">
+            <Image
+              source={require("../assets/logo_in_app.png")} // Ou ton fichier spécifique "logo-team.png"
+              style={{ width: 100, height: 100 }} // Ajuste la taille
+              resizeMode="contain"
+            />
           </View>
           <Text className="text-4xl font-black text-white italic tracking-tighter">
             Team<Text className="text-yellow-400">Shuffle</Text>
           </Text>
           <Text className="text-blue-100 font-medium text-sm mt-1 tracking-widest uppercase">
-            Générateur d'équipes Pro
+            Générateur d'équipes
           </Text>
         </View>
 

@@ -28,7 +28,7 @@ export default function Layout() {
       <StatusBar style="light" />
       <Stack
         screenOptions={{
-          headerStyle: { backgroundColor: "#007BFF" },
+          headerStyle: { backgroundColor: "#000000" },
           headerTintColor: "#fff",
           headerTitleStyle: { fontWeight: "bold" },
           contentStyle: { backgroundColor: "#F8F9FA" },
@@ -41,7 +41,11 @@ export default function Layout() {
         <Stack.Screen name="players/index" options={{ title: "Mes Joueurs" }} />
         <Stack.Screen
           name="players/[id]"
-          options={{ title: "Joueur", presentation: "modal" }}
+          options={{
+            title: "Joueur",
+            presentation: "modal",
+            headerShown: false,
+          }}
         />
         <Stack.Screen
           name="session/config"
@@ -57,7 +61,11 @@ export default function Layout() {
         />
         <Stack.Screen
           name="profile/index"
-          options={{ title: "Mon Profil", presentation: "modal" }}
+          options={{
+            title: "Mon Profil",
+            presentation: "modal",
+            headerShown: false,
+          }}
         />
         {/* On laisse 'scan' se gérer automatiquement ou on l'ajoute explicitement */}
         <Stack.Screen

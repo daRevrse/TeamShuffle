@@ -92,12 +92,12 @@ export default function PlayersListScreen() {
   };
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-white-50">
       {/* En-tête */}
       <View className="bg-white pt-4 pb-2 rounded-b-[30px] shadow-sm z-10">
         <View className="px-4 flex-row items-center justify-between mb-4">
           <Text className="text-3xl font-black text-dark italic tracking-tighter">
-            Effectif <Text className="text-primary">Pro</Text>
+            Effectif <Text className="text-primary"></Text>
           </Text>
           <TouchableOpacity
             className="bg-gray-100 p-2 rounded-full border border-gray-200"
@@ -140,7 +140,7 @@ export default function PlayersListScreen() {
             onPress={() => setModalVisible(true)}
             className="w-10 h-10 rounded-full bg-primary/10 items-center justify-center border border-primary/20 dashed"
           >
-            <Ionicons name="add" size={20} color="#007BFF" />
+            <Ionicons name="add" size={20} color="#000000" />
           </TouchableOpacity>
         </ScrollView>
 

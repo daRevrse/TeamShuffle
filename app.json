@@ -2,6 +2,7 @@
   "expo": {
     "name": "teamshuffle",
     "slug": "teamshuffle",
+    "scheme": "teamshuffle",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -20,14 +21,18 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.flowkraft.teamshuffle"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": [
-      "expo-router",
-      "expo-font"
-    ]
+    "plugins": ["expo-router", "expo-font"],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "d39a2f09-d7dc-43c5-836b-69aff8d0b7af"
+      }
+    }
   }
 }
