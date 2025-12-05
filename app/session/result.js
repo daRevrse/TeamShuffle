@@ -199,7 +199,7 @@ export default function SessionResultScreen() {
                 />
 
                 {/* Badge VS Central */}
-                <View className="absolute left-[42%] top-[48%] z-10 bg-dark w-14 h-14 rounded-full items-center justify-center border-4 border-gray-50 shadow-lg">
+                <View className="absolute left-[42%] top-[40%] z-10 bg-dark w-14 h-14 rounded-full items-center justify-center border-4 border-gray-50 shadow-lg">
                   <Text className="text-white font-black italic text-lg">
                     VS
                   </Text>

@@ -1,36 +1,32 @@
 /**
- * TeamGenerator - Algorithmes de génération d'équipes
- * 3 méthodes disponibles : random, balanced, position
+ * FONCTIONS UTILITAIRES (HORS CLASSE)
+ * Cela évite les bugs de contexte "this" qui font planter l'app
  */
 
+const shuffleArray = (array) => {
+  if (!array) return [];
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
+
+const calculateAvg = (team) => {
+  if (!team || team.length === 0) return 0;
+  // On utilise une valeur par défaut (3) si le niveau est manquant
+  const total = team.reduce((sum, player) => sum + (player.level || 3), 0);
+  return Math.round((total / team.length) * 10) / 10;
+};
+
+/**
+ * GÉNÉRATEUR D'ÉQUIPES
+ */
 export class TeamGenerator {
-  /**
-   * Mélange un tableau de manière aléatoire (Fisher-Yates shuffle)
-   */
-  static shuffle(array) {
-    const shuffled = [...array];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    return shuffled;
-  }
-
-  /**
-   * Calcule le niveau moyen d'une équipe
-   */
-  static calculateAverageLevel(team) {
-    if (!team || team.length === 0) return 0;
-    const total = team.reduce((sum, player) => sum + (player.level || 0), 0);
-    return Math.round((total / team.length) * 10) / 10;
-  }
-
-  /**
-   * MÉTHODE 1 : Génération ALÉATOIRE
-   * Distribution totalement random
-   */
+  // --- MODE ALÉATOIRE ---
   static generateRandom(players) {
-    const shuffled = this.shuffle(players);
+    const shuffled = shuffleArray(players);
     const midPoint = Math.ceil(shuffled.length / 2);
 
     return {
@@ -39,138 +35,76 @@ export class TeamGenerator {
     };
   }
 
-  /**
-   * MÉTHODE 2 : Génération ÉQUILIBRÉE
-   * Trie par niveau et distribue alternativement
-   */
+  // --- MODE ÉQUILIBRÉ ---
   static generateBalanced(players) {
-    // Trier par niveau décroissant
-    const sorted = [...players].sort((a, b) => (b.level || 0) - (a.level || 0));
-
+    // Tri décroissant par niveau
+    const sorted = [...players].sort((a, b) => (b.level || 3) - (a.level || 3));
     const teamA = [];
     const teamB = [];
 
-    // Distribution snake draft (1→2, 2→1, 1→2, etc.)
-    sorted.forEach((player, index) => {
-      const teamALevel = this.calculateAverageLevel(teamA) * teamA.length;
-      const teamBLevel = this.calculateAverageLevel(teamB) * teamB.length;
+    // Distribution intelligente (Snake Draft amélioré)
+    sorted.forEach((player) => {
+      const sumA = teamA.reduce((s, p) => s + (p.level || 3), 0);
+      const sumB = teamB.reduce((s, p) => s + (p.level || 3), 0);
 
-      // Ajouter au team qui a le niveau total le plus faible
-      if (teamA.length === teamB.length) {
-        // Si même nombre, alterner en commençant par teamA
-        if (Math.floor(index / 2) % 2 === 0) {
-          teamA.push(player);
-        } else {
-          teamB.push(player);
-        }
-      } else if (teamALevel <= teamBLevel) {
+      // 1. Équilibrer le nombre de joueurs en priorité
+      if (teamA.length < teamB.length) {
         teamA.push(player);
-      } else {
+      } else if (teamB.length < teamA.length) {
         teamB.push(player);
+      } else {
+        // 2. Si égalité numérique, équilibrer le niveau total
+        if (sumA <= sumB) teamA.push(player);
+        else teamB.push(player);
       }
     });
 
     return { teamA, teamB };
   }
 
-  /**
-   * MÉTHODE 3 : Génération PAR POSTES
-   * Distribution équitable des postes (G, D, M, A)
-   */
+  // --- MODE PAR POSTES ---
   static generateByPosition(players) {
     const positions = ["G", "D", "M", "A"];
     const teamA = [];
     const teamB = [];
 
-    // Pour chaque poste, distribuer alternativement
-    positions.forEach((position) => {
-      const positionPlayers = players.filter((p) => p.position === position);
-      const shuffled = this.shuffle(positionPlayers);
+    // Pour chaque poste, on mélange et on distribue
+    positions.forEach((pos) => {
+      const pList = players.filter((p) => p.position === pos);
+      const shuffled = shuffleArray(pList);
 
       shuffled.forEach((player, index) => {
-        if (index % 2 === 0) {
-          teamA.push(player);
-        } else {
-          teamB.push(player);
-        }
+        if (index % 2 === 0) teamA.push(player);
+        else teamB.push(player);
       });
     });
 
-    // Vérifier si tous les joueurs sont assignés
-    const assigned = [...teamA, ...teamB];
-    const unassigned = players.filter(
-      (p) => !assigned.find((ap) => ap.id === p.id)
-    );
+    // Gestion des joueurs sans poste ou non assignés
+    const assignedIds = new Set([...teamA, ...teamB].map((p) => p.id));
+    const others = players.filter((p) => !assignedIds.has(p.id));
 
-    // Distribuer les non-assignés (cas rare)
-    unassigned.forEach((player, index) => {
-      if (index % 2 === 0) {
-        teamA.push(player);
-      } else {
-        teamB.push(player);
-      }
+    others.forEach((player) => {
+      if (teamA.length <= teamB.length) teamA.push(player);
+      else teamB.push(player);
     });
 
     return { teamA, teamB };
   }
 
-  /**
-   * FONCTION PRINCIPALE
-   * Génère les équipes selon la méthode choisie
-   */
+  // --- POINT D'ENTRÉE ---
   static generate(players, method = "balanced") {
     if (!players || players.length < 2) {
-      throw new Error("Il faut au moins 2 joueurs pour créer des équipes");
+      throw new Error("Il faut au moins 2 joueurs pour générer des équipes.");
     }
 
     switch (method) {
       case "random":
         return this.generateRandom(players);
-      case "balanced":
-        return this.generateBalanced(players);
       case "position":
         return this.generateByPosition(players);
+      case "balanced":
       default:
         return this.generateBalanced(players);
     }
-  }
-
-  /**
-   * UTILITAIRE : Calculer la différence de niveau entre 2 équipes
-   */
-  static calculateDifference(teamA, teamB) {
-    const avgA = this.calculateAverageLevel(teamA);
-    const avgB = this.calculateAverageLevel(teamB);
-    return Math.abs(avgA - avgB);
-  }
-
-  /**
-   * UTILITAIRE : Obtenir des statistiques sur les équipes générées
-   */
-  static getTeamsStats(teamA, teamB) {
-    return {
-      teamA: {
-        count: teamA.length,
-        avgLevel: this.calculateAverageLevel(teamA),
-        positions: this.countPositions(teamA),
-      },
-      teamB: {
-        count: teamB.length,
-        avgLevel: this.calculateAverageLevel(teamB),
-        positions: this.countPositions(teamB),
-      },
-      difference: this.calculateDifference(teamA, teamB),
-    };
-  }
-
-  /**
-   * UTILITAIRE : Compter le nombre de joueurs par poste
-   */
-  static countPositions(team) {
-    return team.reduce((acc, player) => {
-      const pos = player.position || "Unknown";
-      acc[pos] = (acc[pos] || 0) + 1;
-      return acc;
-    }, {});
   }
 }

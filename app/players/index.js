@@ -4,24 +4,64 @@ import {
   FlatList,
   TouchableOpacity,
   TextInput,
+  ScrollView,
+  Alert,
+  Modal,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { usePlayerStore } from "../../store/usePlayerStore";
 import { useState } from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function PlayersListScreen() {
   const router = useRouter();
-  const players = usePlayerStore((state) => state.players);
+
+  const {
+    groups,
+    activeGroupId,
+    setActiveGroup,
+    addGroup,
+    deleteGroup,
+    getActivePlayers,
+  } = usePlayerStore();
+
+  const players = getActivePlayers();
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Filtrer les joueurs selon la recherche
+  // États pour la modale de création de groupe
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [newGroupName, setNewGroupName] = useState("");
+
   const filteredPlayers = players.filter((p) =>
     p.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Badge de poste stylisé
+  const handleCreateGroup = () => {
+    if (newGroupName.trim()) {
+      addGroup(newGroupName.trim());
+      setNewGroupName("");
+      setModalVisible(false);
+    }
+  };
+
+  const handleLongPressGroup = (group) => {
+    if (group.isDefault) return;
+    Alert.alert(
+      "Supprimer le groupe ?",
+      `Les joueurs de "${group.name}" seront déplacés dans "Général".`,
+      [
+        { text: "Annuler", style: "cancel" },
+        {
+          text: "Supprimer",
+          style: "destructive",
+          onPress: () => deleteGroup(group.id),
+        },
+      ]
+    );
+  };
+
   const PositionBadge = ({ position }) => {
     const styles = {
       G: {
@@ -42,7 +82,6 @@ export default function PlayersListScreen() {
       A: { bg: "bg-red-100", text: "text-red-700", border: "border-red-200" },
     };
     const style = styles[position] || styles.M;
-
     return (
       <View
         className={`${style.bg} ${style.border} border w-10 h-10 rounded-xl items-center justify-center mr-4`}
@@ -54,69 +93,104 @@ export default function PlayersListScreen() {
 
   return (
     <View className="flex-1 bg-gray-50">
-      {/* En-tête avec Recherche */}
-      <View className="bg-white px-4 pt-4 pb-4 rounded-b-[30px] shadow-sm z-10">
-        <View className="flex-row items-center justify-between mb-4">
+      {/* En-tête */}
+      <View className="bg-white pt-4 pb-2 rounded-b-[30px] shadow-sm z-10">
+        <View className="px-4 flex-row items-center justify-between mb-4">
           <Text className="text-3xl font-black text-dark italic tracking-tighter">
             Effectif <Text className="text-primary">Pro</Text>
           </Text>
-          <View className="bg-gray-100 px-3 py-1 rounded-full">
-            <Text className="text-gray-500 font-bold text-xs">
-              {players.length} Joueurs
-            </Text>
-          </View>
+          <TouchableOpacity
+            className="bg-gray-100 p-2 rounded-full border border-gray-200"
+            onPress={() => router.push("/profile")}
+          >
+            <Ionicons name="qr-code" size={20} color="black" />
+          </TouchableOpacity>
         </View>
 
-        {/* Barre de recherche */}
-        <View className="bg-gray-100 flex-row items-center px-4 py-3 rounded-2xl border border-gray-200">
-          <Ionicons name="search" size={20} color="#9CA3AF" />
-          <TextInput
-            placeholder="Rechercher un joueur..."
-            className="flex-1 ml-3 font-medium text-dark"
-            placeholderTextColor="#9CA3AF"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-          {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => setSearchQuery("")}>
-              <Ionicons name="close-circle" size={20} color="#9CA3AF" />
-            </TouchableOpacity>
-          )}
+        {/* Barre des Groupes */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 12 }}
+          className="flex-row"
+        >
+          {groups.map((group) => {
+            const isActive = group.id === activeGroupId;
+            return (
+              <TouchableOpacity
+                key={group.id}
+                onPress={() => setActiveGroup(group.id)}
+                onLongPress={() => handleLongPressGroup(group)}
+                className={`mr-3 px-4 py-2 rounded-full border ${
+                  isActive ? "bg-dark border-dark" : "bg-white border-gray-200"
+                }`}
+              >
+                <Text
+                  className={`font-bold ${
+                    isActive ? "text-white" : "text-gray-500"
+                  }`}
+                >
+                  {group.name}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+
+          <TouchableOpacity
+            onPress={() => setModalVisible(true)}
+            className="w-10 h-10 rounded-full bg-primary/10 items-center justify-center border border-primary/20 dashed"
+          >
+            <Ionicons name="add" size={20} color="#007BFF" />
+          </TouchableOpacity>
+        </ScrollView>
+
+        <View className="mx-4 mb-4 flex-row gap-2">
+          <View className="flex-1 bg-gray-100 flex-row items-center px-4 py-3 rounded-2xl border border-gray-200">
+            <Ionicons name="search" size={20} color="#9CA3AF" />
+            <TextInput
+              placeholder="Rechercher..."
+              className="flex-1 ml-3 font-medium text-dark"
+              placeholderTextColor="#9CA3AF"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+          </View>
+          <TouchableOpacity
+            className="bg-dark w-12 rounded-2xl items-center justify-center"
+            onPress={() => router.push("/scan")}
+          >
+            <Ionicons name="scan" size={24} color="white" />
+          </TouchableOpacity>
         </View>
       </View>
 
-      {/* Liste */}
-      {players.length === 0 ? (
+      {/* Liste filtrée */}
+      {filteredPlayers.length === 0 ? (
         <View className="flex-1 items-center justify-center p-8 opacity-60">
           <Ionicons name="people" size={64} color="#D1D5DB" />
           <Text className="text-xl font-bold text-gray-400 mt-4 text-center">
-            Le vestiaire est vide.
+            {players.length === 0 ? "Ce groupe est vide." : "Aucun résultat."}
           </Text>
-          <Text className="text-gray-400 text-center mt-2">
-            Ajoute ton premier joueur pour commencer.
-          </Text>
+          <TouchableOpacity onPress={() => router.push("/players/new")}>
+            <Text className="text-primary font-bold mt-2">
+              Ajouter un joueur ici
+            </Text>
+          </TouchableOpacity>
         </View>
       ) : (
         <FlatList
           data={filteredPlayers}
           keyExtractor={(item) => item.id}
           contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
-          ListEmptyComponent={
-            <Text className="text-center text-gray-400 mt-10">
-              Aucun joueur trouvé pour "{searchQuery}"
-            </Text>
-          }
           renderItem={({ item }) => (
             <TouchableOpacity
               className="bg-white p-4 rounded-2xl mb-3 shadow-sm flex-row items-center border border-gray-100 active:scale-[0.98]"
               onPress={() => router.push(`/players/${item.id}`)}
             >
               <PositionBadge position={item.position} />
-
               <View className="flex-1">
                 <Text className="text-lg font-bold text-dark">{item.name}</Text>
                 <View className="flex-row items-center mt-1">
-                  {/* Indicateur de niveau visuel (Barre de progression style jeu vidéo) */}
                   <View className="flex-row gap-0.5">
                     {[1, 2, 3, 4, 5].map((lvl) => (
                       <View
@@ -129,14 +203,52 @@ export default function PlayersListScreen() {
                   </View>
                 </View>
               </View>
-
               <Ionicons name="chevron-forward" size={20} color="#E5E7EB" />
             </TouchableOpacity>
           )}
         />
       )}
 
-      {/* FAB (Floating Action Button) */}
+      {/* MODALE CRÉATION GROUPE (Compatible Android) */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={isModalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          className="flex-1 justify-center items-center bg-black/50 px-6"
+        >
+          <View className="bg-white p-6 rounded-3xl w-full shadow-2xl">
+            <Text className="text-xl font-bold text-dark mb-4">
+              Nouveau Groupe
+            </Text>
+            <TextInput
+              className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-4 text-lg"
+              placeholder="Nom du groupe (ex: Five Lundi)"
+              autoFocus
+              value={newGroupName}
+              onChangeText={setNewGroupName}
+            />
+            <View className="flex-row justify-end gap-3">
+              <TouchableOpacity
+                onPress={() => setModalVisible(false)}
+                className="px-4 py-3 rounded-xl bg-gray-100"
+              >
+                <Text className="font-bold text-gray-500">Annuler</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleCreateGroup}
+                className="px-6 py-3 rounded-xl bg-primary"
+              >
+                <Text className="font-bold text-white">Créer</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
       <TouchableOpacity
         className="absolute bottom-8 right-6 bg-dark w-16 h-16 rounded-full items-center justify-center shadow-2xl border-4 border-white/20"
         onPress={() => router.push("/players/new")}

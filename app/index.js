@@ -43,7 +43,7 @@ export default function HomeScreen() {
       </View>
 
       {/* --- ZONE DE CONTENU (Chevauchement) --- */}
-      <View className="flex-1 px-6 -mt-10">
+      <View className="flex-1 px-6 mt-10">
         {/* 1. CARTE PRINCIPALE : Lancer le match */}
         <TouchableOpacity
           className="bg-white rounded-3xl p-6 shadow-xl mb-6 flex-row items-center justify-between active:scale-[0.98] transition-transform"
@@ -105,7 +105,7 @@ export default function HomeScreen() {
         {/* 3. SETTINGS / EXTRAS (Optionnel) */}
         <TouchableOpacity
           className="bg-white/60 p-4 rounded-2xl border border-dashed border-gray-300 flex-row items-center justify-center mb-4 active:bg-white"
-          onPress={() => alert("Bientôt disponible !")}
+          onPress={() => router.push("/settings")}
         >
           <Ionicons
             name="settings-outline"
@@ -122,7 +122,7 @@ export default function HomeScreen() {
       {/* Footer minimaliste */}
       <View className="items-center pb-8">
         <Text className="text-gray-300 text-[10px] font-bold uppercase tracking-widest">
-          Version MVP 1.0 • Built with Expo
+          Version 1.0 • FlowKraft Agency
         </Text>
       </View>
     </View>
