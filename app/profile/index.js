@@ -54,11 +54,26 @@ export default function ProfileScreen() {
   };
 
   const shareLink = async () => {
-    const url = generateShareData();
+    // 1. On récupère les données brutes
+    const data = {
+      n: name,
+      l: level,
+      p: position,
+      id: userProfile.id,
+    };
+
+    // 2. On encode juste le JSON (pas besoin de Linking.createURL ici)
+    const jsonString = JSON.stringify(data);
+    const encodedData = encodeURIComponent(jsonString);
+
+    const webUrl = `https://teamshuffle.flowkraftagency.com/share.html?data=${encodedData}`;
+
     try {
       await Share.share({
-        message: `Ajoute-moi à ta team sur TeamShuffle ! ⚽\n${url}`,
-        url: url, // Pour iOS
+        // Message plus sympa
+        message: `Rejoins ma team sur TeamShuffle ! ⚽\nClique ici pour m'ajouter : ${webUrl}`,
+        // URL pour iOS (optionnel mais recommandé)
+        url: webUrl,
       });
     } catch (error) {
       alert(error.message);

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ouverture de TeamShuffle...</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #F8F9FA;
+            color: #1A1A1A;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .btn {
+            background-color: #007BFF;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 20px;
+            display: inline-block;
+        }
+    </style>
+</head>
+
+<body>
+    <div style="font-size: 60px; margin-bottom: 20px;">⚽</div>
+    <h2>Ouverture de TeamShuffle...</h2>
+    <p>Si l'application ne s'ouvre pas automatiquement, cliquez ci-dessous :</p>
+
+    <a id="btnOpen" href="#" class="btn">Ouvrir l'application</a>
+
+    <p style="margin-top: 40px; color: #666; font-size: 0.9rem;">
+        Pas encore l'appli ? <a href="index.html">Télécharger l'APK</a>
+    </p>
+
+    <script>
+        // 1. Récupérer les données dans l'URL (le token après ?data=)
+        const params = new URLSearchParams(window.location.search);
+        const data = params.get('data');
+
+        if (data) {
+            // 2. Construire le lien profond (Deep Link)
+            // Le format doit correspondre exactement à ce que l'app attend
+            const deepLink = `teamshuffle://import?data=${data}`;
+
+            // 3. Mettre à jour le bouton manuel
+            document.getElementById('btnOpen').href = deepLink;
+
+            // 4. Tenter l'ouverture automatique
+            window.location.href = deepLink;
+
+            // Astuce : Si l'app n'est pas installée, on peut rediriger vers le téléchargement après un délai
+            setTimeout(function () {
+                // Optionnel : Redirection vers la page de téléchargement si rien ne se passe
+                // window.location.href = 'index.html'; 
+            }, 2000);
+        } else {
+            document.querySelector('h2').innerText = "Lien invalide (pas de données)";
+        }
+    </script>
+</body>
+
+</html>

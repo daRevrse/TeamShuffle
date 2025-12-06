@@ -14,7 +14,7 @@ export default function HomeScreen() {
       <StatusBar barStyle="light-content" />
 
       {/* --- ZONE D'EN-TÊTE (Background Bleu) --- */}
-      <View className="bg-primary h-[35%] rounded-b-[40px] pt-12 px-6 items-center shadow-lg z-10 relative">
+      <View className="bg-primary h-[45%] rounded-b-[40px] pt-24 px-6 items-center shadow-lg z-10 relative">
         {/* Motif décoratif de fond (cercles) */}
         <View className="absolute top-[-50] left-[-50] w-40 h-40 bg-white/10 rounded-full" />
         <View className="absolute top-[20] right-[-20] w-20 h-20 bg-white/10 rounded-full" />

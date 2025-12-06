@@ -1,8 +1,8 @@
 /**
- * FONCTIONS UTILITAIRES (HORS CLASSE)
- * Cela évite les bugs de contexte "this" qui font planter l'app
+ * TeamGenerator - Algorithmes de génération d'équipes (Multi-teams)
  */
 
+// Fonction shuffle externe pour éviter les bugs de contexte "this"
 const shuffleArray = (array) => {
   if (!array) return [];
   const shuffled = [...array];
@@ -13,98 +13,103 @@ const shuffleArray = (array) => {
   return shuffled;
 };
 
-const calculateAvg = (team) => {
-  if (!team || team.length === 0) return 0;
-  // On utilise une valeur par défaut (3) si le niveau est manquant
-  const total = team.reduce((sum, player) => sum + (player.level || 3), 0);
-  return Math.round((total / team.length) * 10) / 10;
-};
-
-/**
- * GÉNÉRATEUR D'ÉQUIPES
- */
 export class TeamGenerator {
-  // --- MODE ALÉATOIRE ---
-  static generateRandom(players) {
-    const shuffled = shuffleArray(players);
-    const midPoint = Math.ceil(shuffled.length / 2);
+  // Initialiser N équipes vides
+  static initTeams(nbTeams) {
+    return Array.from({ length: nbTeams }, () => []);
+  }
 
-    return {
-      teamA: shuffled.slice(0, midPoint),
-      teamB: shuffled.slice(midPoint),
-    };
+  // Formater le résultat en objet { teamA, teamB, ... }
+  static formatResult(teamsArray) {
+    const keys = ["teamA", "teamB", "teamC", "teamD"];
+    const result = {};
+    teamsArray.forEach((team, index) => {
+      if (keys[index]) result[keys[index]] = team;
+    });
+    return result;
+  }
+
+  // --- MODE ALÉATOIRE ---
+  static generateRandom(players, nbTeams) {
+    const shuffled = shuffleArray(players);
+    const teams = this.initTeams(nbTeams);
+
+    shuffled.forEach((player, index) => {
+      const teamIndex = index % nbTeams;
+      teams[teamIndex].push(player);
+    });
+
+    return this.formatResult(teams);
+    // throw new Error("Mode 'Aléatoire' bientôt disponible !");
   }
 
   // --- MODE ÉQUILIBRÉ ---
-  static generateBalanced(players) {
-    // Tri décroissant par niveau
+  static generateBalanced(players, nbTeams) {
     const sorted = [...players].sort((a, b) => (b.level || 3) - (a.level || 3));
-    const teamA = [];
-    const teamB = [];
+    const teams = this.initTeams(nbTeams);
 
-    // Distribution intelligente (Snake Draft amélioré)
     sorted.forEach((player) => {
-      const sumA = teamA.reduce((s, p) => s + (p.level || 3), 0);
-      const sumB = teamB.reduce((s, p) => s + (p.level || 3), 0);
+      // Trouver l'équipe avec le moins de joueurs
+      let minSize = Math.min(...teams.map((t) => t.length));
+      let candidateTeams = teams.filter((t) => t.length === minSize);
 
-      // 1. Équilibrer le nombre de joueurs en priorité
-      if (teamA.length < teamB.length) {
-        teamA.push(player);
-      } else if (teamB.length < teamA.length) {
-        teamB.push(player);
-      } else {
-        // 2. Si égalité numérique, équilibrer le niveau total
-        if (sumA <= sumB) teamA.push(player);
-        else teamB.push(player);
-      }
+      // Parmi elles, celle avec le niveau total le plus bas
+      candidateTeams.sort((a, b) => {
+        const sumA = a.reduce((sum, p) => sum + (p.level || 3), 0);
+        const sumB = b.reduce((sum, p) => sum + (p.level || 3), 0);
+        return sumA - sumB;
+      });
+
+      candidateTeams[0].push(player);
     });
 
-    return { teamA, teamB };
+    return this.formatResult(teams);
   }
 
   // --- MODE PAR POSTES ---
-  static generateByPosition(players) {
-    const positions = ["G", "D", "M", "A"];
-    const teamA = [];
-    const teamB = [];
-
-    // Pour chaque poste, on mélange et on distribue
-    positions.forEach((pos) => {
-      const pList = players.filter((p) => p.position === pos);
-      const shuffled = shuffleArray(pList);
-
-      shuffled.forEach((player, index) => {
-        if (index % 2 === 0) teamA.push(player);
-        else teamB.push(player);
-      });
-    });
-
-    // Gestion des joueurs sans poste ou non assignés
-    const assignedIds = new Set([...teamA, ...teamB].map((p) => p.id));
-    const others = players.filter((p) => !assignedIds.has(p.id));
-
-    others.forEach((player) => {
-      if (teamA.length <= teamB.length) teamA.push(player);
-      else teamB.push(player);
-    });
-
-    return { teamA, teamB };
+  static generateByPosition(players, nbTeams) {
+    // const positions = ["G", "D", "M", "A"];
+    // const teams = this.initTeams(nbTeams);
+    // // 1. Assigner par poste (si existant)
+    // positions.forEach((pos) => {
+    //   const pList = players.filter((p) => p.position === pos);
+    //   const shuffled = shuffleArray(pList);
+    //   shuffled.forEach((player, index) => {
+    //     const offset = positions.indexOf(pos);
+    //     const teamIndex = (index + offset) % nbTeams;
+    //     teams[teamIndex].push(player);
+    //   });
+    // });
+    // // 2. Gérer les joueurs SANS position
+    // const assignedIds = new Set(teams.flat().map((p) => p.id));
+    // const others = players.filter((p) => !assignedIds.has(p.id));
+    // // PATCH : éviter crash si others contient undefined
+    // others
+    //   .filter((p) => p && p.id)
+    //   .forEach((player) => {
+    //     let target = teams.reduce((a, b) => (a.length <= b.length ? a : b));
+    //     target.push(player);
+    //   });
+    // return this.formatResult(teams);
+    throw new Error("Mode 'Aléatoire' bientôt disponible !");
   }
 
   // --- POINT D'ENTRÉE ---
-  static generate(players, method = "balanced") {
-    if (!players || players.length < 2) {
-      throw new Error("Il faut au moins 2 joueurs pour générer des équipes.");
+  static generate(players, method = "balanced", nbTeams = 2) {
+    if (!players || players.length < nbTeams) {
+      throw new Error(
+        `Il faut au moins ${nbTeams} joueurs pour faire ${nbTeams} équipes.`
+      );
     }
 
     switch (method) {
       case "random":
-        return this.generateRandom(players);
+        return this.generateRandom(players, nbTeams);
       case "position":
-        return this.generateByPosition(players);
+        return this.generateByPosition(players, nbTeams);
       case "balanced":
       default:
-        return this.generateBalanced(players);
+        return this.generateBalanced(players, nbTeams);
     }
   }
 }

@@ -139,6 +139,12 @@ export default function PlayerFormScreen() {
         className="flex-1"
         contentContainerStyle={{ paddingBottom: 40 }}
       >
+        <TouchableOpacity
+          className="absolute top-14 left-4"
+          onPress={() => router.back()}
+        >
+          <Ionicons name="arrow-back" size={24} color="#000000" />
+        </TouchableOpacity>
         {/* --- ZONE DE PREVIEW (CARTE DYNAMIQUE) --- */}
         <View className="items-center justify-center pt-28 pb-8 px-6">
           <View
@@ -297,7 +303,7 @@ export default function PlayerFormScreen() {
           {/* Bouton Action */}
           <TouchableOpacity
             className={`w-full py-5 rounded-2xl shadow-lg active:opacity-90 ${
-              name.trim().length > 0 ? "bg-dark" : "bg-gray-300"
+              name.trim().length > 0 ? "bg-dark" : "bg-gray"
             }`}
             onPress={handleSave}
             disabled={name.trim().length === 0}

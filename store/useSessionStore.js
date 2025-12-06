@@ -2,82 +2,73 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+// Fonction utilitaire locale
+function calculateAverage(team) {
+  if (!team || team.length === 0) return 0;
+  const total = team.reduce((sum, player) => sum + (player.level || 3), 0);
+  return Math.round((total / team.length) * 10) / 10;
+}
+
 export const useSessionStore = create(
   persist(
     (set, get) => ({
-      // Historique des sessions
       sessions: [],
-
-      // Session courante (avant sauvegarde dans l'historique)
       currentSession: null,
 
-      // Créer une nouvelle session
       createSession: (players, teams, method) => {
+        const teamsArray = Object.values(teams);
+        const averages = teamsArray.map((t) => calculateAverage(t));
+        const maxAvg = Math.max(...averages);
+        const minAvg = Math.min(...averages);
+
+        const stats = {
+          // Génère avgLevelTeamA, avgLevelTeamB, etc.
+          ...Object.keys(teams).reduce((acc, key, index) => {
+            acc[`avgLevel${key.charAt(0).toUpperCase() + key.slice(1)}`] =
+              averages[index];
+            return acc;
+          }, {}),
+          difference: Math.round((maxAvg - minAvg) * 10) / 10,
+        };
+
         const session = {
           id: Date.now().toString(),
           date: new Date().toISOString(),
-          players: players,
-          teams: teams,
-          method: method,
-          stats: {
-            avgLevelTeamA: calculateAverage(teams.teamA),
-            avgLevelTeamB: calculateAverage(teams.teamB),
-            difference: Math.abs(
-              calculateAverage(teams.teamA) - calculateAverage(teams.teamB)
-            ),
-          },
+          players,
+          teams,
+          method,
+          stats,
         };
 
         set({ currentSession: session });
-        return session;
       },
 
-      // Sauvegarder la session courante dans l'historique
       saveToHistory: () => {
         const { currentSession, sessions } = get();
-        if (currentSession) {
-          set({
-            sessions: [currentSession, ...sessions],
-          });
+        if (
+          currentSession &&
+          !sessions.find((s) => s.id === currentSession.id)
+        ) {
+          set({ sessions: [currentSession, ...sessions] });
         }
       },
 
-      // Charger une session depuis l'historique
       loadSession: (sessionId) => {
-        const { sessions } = get();
-        const session = sessions.find((s) => s.id === sessionId);
-        if (session) {
-          set({ currentSession: session });
-        }
+        const session = get().sessions.find((s) => s.id === sessionId);
+        if (session) set({ currentSession: session });
       },
 
-      // Supprimer une session de l'historique
       deleteSession: (sessionId) => {
         set((state) => ({
           sessions: state.sessions.filter((s) => s.id !== sessionId),
         }));
       },
 
-      // Tout effacer
-      clearHistory: () => {
-        set({ sessions: [], currentSession: null });
-      },
-
-      // Réinitialiser la session courante
-      resetCurrentSession: () => {
-        set({ currentSession: null });
-      },
+      clearHistory: () => set({ sessions: [], currentSession: null }),
     }),
     {
-      name: "teamshuffle-sessions",
+      name: "teamshuffle-sessions-v3", // Nouvelle version
       storage: createJSONStorage(() => AsyncStorage),
     }
   )
 );
-
-// Fonction utilitaire pour calculer la moyenne des niveaux
-function calculateAverage(team) {
-  if (!team || team.length === 0) return 0;
-  const total = team.reduce((sum, player) => sum + (player.level || 0), 0);
-  return Math.round((total / team.length) * 10) / 10; // Arrondi à 1 décimale
-}

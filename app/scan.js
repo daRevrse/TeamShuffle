@@ -33,10 +33,26 @@ export default function ScanScreen() {
   }
 
   const handleBarCodeScanned = ({ data }) => {
-    // Détection des liens de l'app
-    if (data.startsWith("exp://") || data.startsWith("teamshuffle://")) {
+    // 1. Cas standard : QR Code de l'app (teamshuffle://)
+    if (data.startsWith("teamshuffle://")) {
       Linking.openURL(data);
       router.back();
+      return;
+    }
+
+    // 2. Cas Web : Lien de partage (https://...)
+    if (data.includes("share.html?data=")) {
+      try {
+        const url = new URL(data);
+        const dataParam = url.searchParams.get("data");
+        if (dataParam) {
+          const deepLink = `teamshuffle://import?data=${dataParam}`;
+          Linking.openURL(deepLink);
+          router.back();
+        }
+      } catch (e) {
+        console.log("Erreur parsing URL", e);
+      }
     }
   };
 

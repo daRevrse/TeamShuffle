@@ -9,7 +9,7 @@ export default function HistoryScreen() {
 
   // Récupération correcte depuis le store (history et non sessions)
   const history = useSessionStore((state) => state.sessions);
-  const deleteFromHistory = useSessionStore((state) => state.deleteFromHistory);
+  const deleteFromHistory = useSessionStore((state) => state.deleteSession);
   const clearHistory = useSessionStore(
     (state) =>
       state.clearHistory || (() => useSessionStore.setState({ history: [] }))
@@ -171,7 +171,7 @@ export default function HistoryScreen() {
             </Text>
           </View>
           <View className="bg-blue-50 w-12 h-12 rounded-2xl items-center justify-center">
-            <Ionicons name="time" size={24} color="#007BFF" />
+            <Ionicons name="time" size={24} color="#000000" />
           </View>
         </View>
       </View>
