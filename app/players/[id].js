@@ -7,11 +7,13 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from "react-native";
 import { useLocalSearchParams, useRouter, Stack } from "expo-router";
 import { useState, useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { usePlayerStore } from "../../store/usePlayerStore";
+import { AVATARS } from "../../constants/avatars";
 
 export default function PlayerFormScreen() {
   const router = useRouter();
@@ -33,16 +35,22 @@ export default function PlayerFormScreen() {
   const [level, setLevel] = useState(3);
   const [position, setPosition] = useState("M");
   const [groupId, setGroupId] = useState(activeGroupId || "default");
+  const [avatarId, setAvatarId] = useState(1);
+  const [jerseyNumber, setJerseyNumber] = useState("");
 
   // Chargement des données en mode édition
   useEffect(() => {
-    if (isEditing) {
+    if (isEditing && id) {
       const playerToEdit = players.find((p) => p.id === id);
       if (playerToEdit) {
         setName(playerToEdit.name);
         setLevel(playerToEdit.level);
         setPosition(playerToEdit.position);
         setGroupId(playerToEdit.groupId || "default");
+        setAvatarId(playerToEdit.avatarId || 1);
+        setJerseyNumber(
+          playerToEdit.jerseyNumber ? String(playerToEdit.jerseyNumber) : ""
+        );
       }
     }
   }, [id]);
@@ -52,7 +60,14 @@ export default function PlayerFormScreen() {
     if (!name.trim())
       return Alert.alert("Oups !", "Le joueur doit avoir un nom.");
 
-    const playerData = { name, level, position, groupId };
+    const playerData = {
+      name,
+      level,
+      position,
+      groupId,
+      avatarId,
+      jerseyNumber: jerseyNumber ? parseInt(jerseyNumber) : null,
+    };
 
     isEditing ? updatePlayer(id, playerData) : addPlayer(playerData);
     router.back();
@@ -113,6 +128,9 @@ export default function PlayerFormScreen() {
   const activeStyle =
     positions.find((p) => p.code === position) || positions[2]; // Fallback M
 
+  // Récupérer l'avatar actuel
+  const currentAvatar = AVATARS.find((a) => a.id === avatarId) || AVATARS[0];
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -172,11 +190,22 @@ export default function PlayerFormScreen() {
                 </View>
               </View>
 
-              {/* Avatar Placeholder */}
-              <View
-                className={`w-24 h-24 rounded-full items-center justify-center mb-4 border-4 ${activeStyle.border} bg-gray-50`}
-              >
-                <Ionicons name="person" size={48} color="#D1D5DB" />
+              {/* Avatar avec numéro */}
+              <View className="relative mb-4">
+                <View className="w-24 h-24 rounded-full items-center justify-center">
+                  <Image
+                    source={currentAvatar.source}
+                    style={{ width: 80, height: 80 }}
+                    resizeMode="contain"
+                  />
+                </View>
+                {jerseyNumber && (
+                  <View className="absolute -bottom-2 -right-2 bg-dark w-10 h-10 rounded-full items-center justify-center border-2 border-white shadow-lg">
+                    <Text className="text-white font-black text-sm">
+                      {jerseyNumber}
+                    </Text>
+                  </View>
+                )}
               </View>
 
               {/* Nom */}
@@ -254,10 +283,27 @@ export default function PlayerFormScreen() {
               {[1, 2, 3, 4, 5].map((star) => (
                 <TouchableOpacity
                   key={star}
-                  // onPress={() => setLevel(star)}
-                  className={`flex-1 py-4 items-center rounded-xl ${
-                    level === star ? "bg-white shadow-sm" : ""
-                  }`}
+                  onPress={() => {
+                    console.log("Niveau sélectionné:", star);
+                    setLevel(star);
+                  }}
+                  activeOpacity={0.7}
+                  style={[
+                    {
+                      flex: 1,
+                      paddingVertical: 16,
+                      alignItems: "center",
+                      borderRadius: 12,
+                    },
+                    level === star && {
+                      backgroundColor: "#FFFFFF",
+                      shadowColor: "#000",
+                      shadowOffset: { width: 0, height: 1 },
+                      shadowOpacity: 0.1,
+                      shadowRadius: 2,
+                      elevation: 2, // Android shadow
+                    },
+                  ]}
                 >
                   <Ionicons
                     name={star <= level ? "star" : "star-outline"}
@@ -267,6 +313,53 @@ export default function PlayerFormScreen() {
                 </TouchableOpacity>
               ))}
             </View>
+          </View>
+
+          {/* Sélecteur Avatar */}
+          <View className="mb-6">
+            <Text className="text-gray-400 font-bold text-xs uppercase mb-2 ml-1">
+              Avatar
+            </Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              className="flex-row"
+            >
+              {AVATARS.map((avatar) => {
+                const isActive = avatarId === avatar.id;
+                return (
+                  <TouchableOpacity
+                    key={avatar.id}
+                    onPress={() => setAvatarId(avatar.id)}
+                    className={`mr-3 w-16 h-16 rounded-full items-center justify-center border-3 ${
+                      isActive ? "border-dark" : "border-gray-200"
+                    }`}
+                  >
+                    <Image
+                      source={avatar.source}
+                      style={{ width: 48, height: 48 }}
+                      resizeMode="contain"
+                    />
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+
+          {/* Numéro de Dossard */}
+          <View className="mb-6">
+            <Text className="text-gray-400 font-bold text-xs uppercase mb-2 ml-1">
+              Numéro de Dossard (Optionnel)
+            </Text>
+            <TextInput
+              className="bg-gray-50 p-5 rounded-2xl border border-gray-100 text-xl font-bold text-dark text-center"
+              placeholder="Ex: 10"
+              placeholderTextColor="#C7C7CC"
+              keyboardType="number-pad"
+              maxLength={2}
+              value={jerseyNumber}
+              onChangeText={setJerseyNumber}
+            />
           </View>
 
           {/* Sélecteur Poste */}

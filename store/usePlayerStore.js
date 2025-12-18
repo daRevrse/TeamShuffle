@@ -15,6 +15,8 @@ export const usePlayerStore = create(
         name: "Moi",
         level: 3,
         position: "M",
+        avatarId: 1,
+        jerseyNumber: null,
         id: "me_" + Date.now(),
       },
 
@@ -62,6 +64,8 @@ export const usePlayerStore = create(
               name: playerData.name,
               level: playerData.level || 3,
               position: playerData.position || "M",
+              avatarId: playerData.avatarId || 1,
+              jerseyNumber: playerData.jerseyNumber || null,
               groupId: playerData.groupId || state.activeGroupId || "default",
               createdAt: new Date().toISOString(),
             },
@@ -94,6 +98,33 @@ export const usePlayerStore = create(
           (p) => (p.groupId || "default") === activeGroupId
         );
       },
+
+      // Ajouter l'utilisateur comme joueur dans le groupe actif
+      addMyselfToGroup: () =>
+        set((state) => {
+          const { userProfile, activeGroupId, players } = state;
+
+          // Vérifier si l'utilisateur n'existe pas déjà dans le groupe
+          const alreadyExists = players.some(
+            (p) => p.id === userProfile.id && (p.groupId || "default") === activeGroupId
+          );
+
+          if (alreadyExists) {
+            return state; // Ne rien faire si déjà présent
+          }
+
+          // Ajouter l'utilisateur comme joueur
+          return {
+            players: [
+              ...players,
+              {
+                ...userProfile,
+                groupId: activeGroupId || "default",
+                createdAt: new Date().toISOString(),
+              },
+            ],
+          };
+        }),
     }),
     {
       name: "teamshuffle-storage-v2",

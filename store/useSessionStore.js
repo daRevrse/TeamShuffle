@@ -14,6 +14,8 @@ export const useSessionStore = create(
     (set, get) => ({
       sessions: [],
       currentSession: null,
+      shuffleCount: 0, // Compteur de mélanges
+      isFromHistory: false, // Indicateur si la session vient de l'historique
 
       createSession: (players, teams, method) => {
         const teamsArray = Object.values(teams);
@@ -40,7 +42,44 @@ export const useSessionStore = create(
           stats,
         };
 
-        set({ currentSession: session });
+        set({ currentSession: session, shuffleCount: 0, isFromHistory: false });
+      },
+
+      // Mettre à jour la session actuelle sans réinitialiser le compteur de mélanges
+      updateSession: (teams) => {
+        set((state) => {
+          if (!state.currentSession) return state;
+
+          const teamsArray = Object.values(teams);
+          const averages = teamsArray.map((t) => calculateAverage(t));
+          const maxAvg = Math.max(...averages);
+          const minAvg = Math.min(...averages);
+
+          const stats = {
+            ...Object.keys(teams).reduce((acc, key, index) => {
+              acc[`avgLevel${key.charAt(0).toUpperCase() + key.slice(1)}`] =
+                averages[index];
+              return acc;
+            }, {}),
+            difference: Math.round((maxAvg - minAvg) * 10) / 10,
+          };
+
+          return {
+            currentSession: {
+              ...state.currentSession,
+              teams,
+              stats,
+            },
+          };
+        });
+      },
+
+      incrementShuffleCount: () => {
+        set((state) => ({ shuffleCount: state.shuffleCount + 1 }));
+      },
+
+      resetShuffleCount: () => {
+        set({ shuffleCount: 0 });
       },
 
       saveToHistory: () => {
@@ -55,7 +94,12 @@ export const useSessionStore = create(
 
       loadSession: (sessionId) => {
         const session = get().sessions.find((s) => s.id === sessionId);
-        if (session) set({ currentSession: session });
+        if (session) set({ currentSession: session, isFromHistory: true, shuffleCount: 0 });
+      },
+
+      // Charger une session depuis l'historique (lecture seule, pas de mélange)
+      loadSessionFromHistory: (session) => {
+        set({ currentSession: session, isFromHistory: true, shuffleCount: 0 });
       },
 
       deleteSession: (sessionId) => {

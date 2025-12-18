@@ -10,6 +10,7 @@ export default function HistoryScreen() {
   // Récupération correcte depuis le store (history et non sessions)
   const history = useSessionStore((state) => state.sessions);
   const deleteFromHistory = useSessionStore((state) => state.deleteSession);
+  const loadSessionFromHistory = useSessionStore((state) => state.loadSessionFromHistory);
   const clearHistory = useSessionStore(
     (state) =>
       state.clearHistory || (() => useSessionStore.setState({ history: [] }))
@@ -17,8 +18,8 @@ export default function HistoryScreen() {
 
   // Fonction pour charger une vieille session dans la vue résultat
   const handleViewSession = (session) => {
-    // On injecte manuellement la session dans le store comme "currentSession"
-    useSessionStore.setState({ currentSession: session });
+    // Charger la session avec le flag isFromHistory
+    loadSessionFromHistory(session);
     router.push("/session/result");
   };
 
@@ -120,37 +121,32 @@ export default function HistoryScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* VS Visuel */}
-          <View className="flex-row items-center mt-2">
-            <View className="flex-1 flex-row items-center">
-              <View className="w-2 h-8 bg-blue-500 rounded-full mr-2" />
-              <View>
-                <Text className="font-bold text-dark text-sm">Team A</Text>
-                <View className="flex-row">
-                  {[...Array(Math.round(item.stats?.avgLevelTeamA || 0))].map(
-                    (_, i) => (
-                      <Ionicons key={i} name="star" size={8} color="#FFC107" />
-                    )
-                  )}
-                </View>
-              </View>
-            </View>
+          {/* Liste de toutes les équipes */}
+          <View className="mt-2 gap-1">
+            {Object.keys(item.teams).map((teamKey, index) => {
+              const colors = ["bg-blue-500", "bg-red-500", "bg-green-500", "bg-orange-500"];
+              const avgKey = `avgLevel${teamKey.charAt(0).toUpperCase() + teamKey.slice(1)}`;
+              const avgLevel = Math.round(item.stats?.[avgKey] || 0);
 
-            <Text className="text-gray-300 font-black italic mx-2">VS</Text>
-
-            <View className="flex-1 flex-row items-center justify-end">
-              <View className="items-end">
-                <Text className="font-bold text-dark text-sm">Team B</Text>
-                <View className="flex-row">
-                  {[...Array(Math.round(item.stats?.avgLevelTeamB || 0))].map(
-                    (_, i) => (
+              return (
+                <View key={teamKey} className="flex-row items-center justify-between">
+                  <View className="flex-row items-center flex-1">
+                    <View className={`w-2 h-6 ${colors[index]} rounded-full mr-2`} />
+                    <Text className="font-bold text-dark text-xs">
+                      Équipe {index + 1}
+                    </Text>
+                    <Text className="text-gray-400 text-xs ml-2">
+                      ({item.teams[teamKey].length} joueurs)
+                    </Text>
+                  </View>
+                  <View className="flex-row">
+                    {[...Array(avgLevel)].map((_, i) => (
                       <Ionicons key={i} name="star" size={8} color="#FFC107" />
-                    )
-                  )}
+                    ))}
+                  </View>
                 </View>
-              </View>
-              <View className="w-2 h-8 bg-red-500 rounded-full ml-2" />
-            </View>
+              );
+            })}
           </View>
         </View>
       </TouchableOpacity>

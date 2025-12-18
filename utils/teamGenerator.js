@@ -68,30 +68,33 @@ export class TeamGenerator {
 
   // --- MODE PAR POSTES ---
   static generateByPosition(players, nbTeams) {
-    // const positions = ["G", "D", "M", "A"];
-    // const teams = this.initTeams(nbTeams);
-    // // 1. Assigner par poste (si existant)
-    // positions.forEach((pos) => {
-    //   const pList = players.filter((p) => p.position === pos);
-    //   const shuffled = shuffleArray(pList);
-    //   shuffled.forEach((player, index) => {
-    //     const offset = positions.indexOf(pos);
-    //     const teamIndex = (index + offset) % nbTeams;
-    //     teams[teamIndex].push(player);
-    //   });
-    // });
-    // // 2. Gérer les joueurs SANS position
-    // const assignedIds = new Set(teams.flat().map((p) => p.id));
-    // const others = players.filter((p) => !assignedIds.has(p.id));
-    // // PATCH : éviter crash si others contient undefined
-    // others
-    //   .filter((p) => p && p.id)
-    //   .forEach((player) => {
-    //     let target = teams.reduce((a, b) => (a.length <= b.length ? a : b));
-    //     target.push(player);
-    //   });
-    // return this.formatResult(teams);
-    throw new Error("Mode 'Aléatoire' bientôt disponible !");
+    const positions = ["G", "D", "M", "A"];
+    const teams = this.initTeams(nbTeams);
+
+    // 1. Assigner par poste (si existant)
+    positions.forEach((pos) => {
+      const pList = players.filter((p) => p.position === pos);
+      const shuffled = shuffleArray(pList);
+      shuffled.forEach((player, index) => {
+        const offset = positions.indexOf(pos);
+        const teamIndex = (index + offset) % nbTeams;
+        teams[teamIndex].push(player);
+      });
+    });
+
+    // 2. Gérer les joueurs SANS position
+    const assignedIds = new Set(teams.flat().map((p) => p.id));
+    const others = players.filter((p) => !assignedIds.has(p.id));
+
+    // PATCH : éviter crash si others contient undefined
+    others
+      .filter((p) => p && p.id)
+      .forEach((player) => {
+        let target = teams.reduce((a, b) => (a.length <= b.length ? a : b));
+        target.push(player);
+      });
+
+    return this.formatResult(teams);
   }
 
   // --- POINT D'ENTRÉE ---

@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity, Alert } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, Alert, TextInput, Modal } from "react-native";
 import { useRouter } from "expo-router";
 import { useRef, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
@@ -12,7 +12,17 @@ export default function SessionResultScreen() {
   const router = useRouter();
   const viewShotRef = useRef(null);
   const [isSharing, setIsSharing] = useState(false);
-  const { currentSession, saveToHistory, createSession } = useSessionStore();
+  const { currentSession, saveToHistory, updateSession, shuffleCount, incrementShuffleCount, isFromHistory } = useSessionStore();
+
+  // États pour la modification des noms d'équipes
+  const [teamNames, setTeamNames] = useState({
+    teamA: "Team Alpha",
+    teamB: "Team Bravo",
+    teamC: "Team Charlie",
+    teamD: "Team Delta",
+  });
+  const [editingTeam, setEditingTeam] = useState(null);
+  const [tempName, setTempName] = useState("");
 
   if (!currentSession) return null;
 
@@ -21,13 +31,36 @@ export default function SessionResultScreen() {
   const nbTeams = teamsKeys.length;
 
   const handleShuffle = () => {
+    // Empêcher le mélange si la session vient de l'historique
+    if (isFromHistory) {
+      Alert.alert(
+        "Session en lecture seule",
+        "Cette session vient de l'historique et ne peut pas être modifiée."
+      );
+      return;
+    }
+
+    // Vérifier si la limite de 3 mélanges est atteinte
+    if (shuffleCount >= 3) {
+      Alert.alert(
+        "Limite atteinte",
+        "Vous avez utilisé vos 3 tentatives de mélange. Sauvegardez ou créez une nouvelle session."
+      );
+      return;
+    }
+
     try {
+      // Incrémenter AVANT de générer les nouvelles équipes
+      incrementShuffleCount();
+
       const newTeams = TeamGenerator.generate(
         currentSession.players,
         method,
         nbTeams
       );
-      createSession(currentSession.players, newTeams, method);
+
+      // Utiliser updateSession pour préserver le compteur
+      updateSession(newTeams);
     } catch (error) {
       Alert.alert("Erreur", error.message);
     }
@@ -38,6 +71,19 @@ export default function SessionResultScreen() {
     Alert.alert("Succès", "Sauvegardé !", [
       { text: "OK", onPress: () => router.push("/") },
     ]);
+  };
+
+  const handleEditTeamName = (teamKey) => {
+    setEditingTeam(teamKey);
+    setTempName(teamNames[teamKey]);
+  };
+
+  const handleSaveTeamName = () => {
+    if (tempName.trim()) {
+      setTeamNames({ ...teamNames, [editingTeam]: tempName.trim() });
+    }
+    setEditingTeam(null);
+    setTempName("");
   };
 
   const handleShare = async () => {
@@ -56,10 +102,20 @@ export default function SessionResultScreen() {
   };
 
   const teamConfig = {
-    teamA: { name: "Team Alpha", bg: "bg-blue-600" },
-    teamB: { name: "Team Bravo", bg: "bg-red-600" },
-    teamC: { name: "Team Charlie", bg: "bg-green-600" },
-    teamD: { name: "Team Delta", bg: "bg-orange-500" },
+    teamA: { bg: "bg-blue-600" },
+    teamB: { bg: "bg-red-600" },
+    teamC: { bg: "bg-green-600" },
+    teamD: { bg: "bg-orange-500" },
+  };
+
+  // Fonction de tri par poste : G -> D -> M -> A
+  const sortPlayersByPosition = (players) => {
+    const positionOrder = { G: 1, D: 2, M: 3, A: 4 };
+    return [...players].sort((a, b) => {
+      const orderA = positionOrder[a.position] || 999;
+      const orderB = positionOrder[b.position] || 999;
+      return orderA - orderB;
+    });
   };
 
   const TeamCard = ({ teamKey, teamData }) => {
@@ -69,21 +125,26 @@ export default function SessionResultScreen() {
     }`;
     const avg = stats[avgKey] || 0;
 
+    // Tri des joueurs par poste
+    const sortedPlayers = sortPlayersByPosition(teamData);
+
     return (
       <View className="bg-white rounded-3xl overflow-hidden mb-4 shadow-sm border border-gray-100">
         <View
           className={`${config.bg} p-4 flex-row justify-between items-center`}
         >
-          <Text className="text-white font-black text-xl uppercase italic tracking-tighter">
-            {config.name}
-          </Text>
+          <TouchableOpacity onPress={() => handleEditTeamName(teamKey)} className="flex-1">
+            <Text className="text-white font-black text-xl uppercase italic tracking-tighter">
+              {teamNames[teamKey]}
+            </Text>
+          </TouchableOpacity>
           <View className="bg-white/20 px-3 py-1 rounded-full flex-row items-center">
             <Text className="text-white font-bold mr-1">{avg}</Text>
             <Ionicons name="star" size={12} color="white" />
           </View>
         </View>
         <View className="p-2">
-          {teamData.map((player, idx) => (
+          {sortedPlayers.map((player) => (
             <View
               key={player.id}
               className="flex-row items-center p-3 border-b border-gray-50 last:border-0"
@@ -115,6 +176,43 @@ export default function SessionResultScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
+      {/* Modale d'édition du nom d'équipe */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={editingTeam !== null}
+        onRequestClose={() => setEditingTeam(null)}
+      >
+        <View className="flex-1 justify-center items-center bg-black/50 px-6">
+          <View className="bg-white p-6 rounded-3xl w-full shadow-2xl">
+            <Text className="text-xl font-bold text-dark mb-4">
+              Renommer l'équipe
+            </Text>
+            <TextInput
+              className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-4 text-lg font-bold"
+              placeholder="Nom de l'équipe"
+              autoFocus
+              value={tempName}
+              onChangeText={setTempName}
+            />
+            <View className="flex-row justify-end gap-3">
+              <TouchableOpacity
+                onPress={() => setEditingTeam(null)}
+                className="px-4 py-3 rounded-xl bg-gray-100"
+              >
+                <Text className="font-bold text-gray-500">Annuler</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleSaveTeamName}
+                className="px-6 py-3 rounded-xl bg-primary"
+              >
+                <Text className="font-bold text-white">Enregistrer</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       <View className="flex-1">
         <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
           <ViewShot
@@ -152,12 +250,24 @@ export default function SessionResultScreen() {
 
         <View className="absolute bottom-8 left-4 right-4 bg-dark/90 p-2 rounded-[24px] flex-row shadow-2xl backdrop-blur-xl border border-white/10">
           <TouchableOpacity
-            className="flex-1 py-4 items-center justify-center rounded-xl active:bg-white/10"
+            className={`flex-1 py-4 items-center justify-center rounded-xl ${
+              shuffleCount >= 3 || isFromHistory ? "opacity-50" : "active:bg-white/10"
+            }`}
             onPress={handleShuffle}
+            disabled={shuffleCount >= 3 || isFromHistory}
           >
-            <Ionicons name="shuffle" size={24} color="white" />
+            <View className="relative">
+              <Ionicons name="shuffle" size={24} color="white" />
+              {shuffleCount < 3 && !isFromHistory && (
+                <View className="absolute -top-1 -right-1 bg-yellow-400 w-5 h-5 rounded-full items-center justify-center">
+                  <Text className="text-dark text-[10px] font-black">
+                    {3 - shuffleCount}
+                  </Text>
+                </View>
+              )}
+            </View>
             <Text className="text-white text-[10px] font-bold mt-1 uppercase">
-              Mélanger
+              {isFromHistory ? "Historique" : "Mélanger"}
             </Text>
           </TouchableOpacity>
           <View className="w-[1px] h-8 bg-white/20 self-center mx-2" />

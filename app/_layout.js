@@ -42,6 +42,18 @@ export default function Layout() {
         />
         <Stack.Screen name="history/index" options={{ title: "Historique" }} />
         <Stack.Screen
+          name="competition/index"
+          options={{ title: "Mode Compétition" }}
+        />
+        <Stack.Screen
+          name="competition/setup"
+          options={{ title: "Nouveau Tournoi", headerShown: false }}
+        />
+        <Stack.Screen
+          name="competition/manage"
+          options={{ title: "Gérer le Tournoi" }}
+        />
+        <Stack.Screen
           name="scan"
           options={{
             title: "Scanner",

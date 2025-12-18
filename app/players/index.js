@@ -9,10 +9,12 @@ import {
   Modal,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { usePlayerStore } from "../../store/usePlayerStore";
+import { AVATARS } from "../../constants/avatars";
 import { useState } from "react";
 
 export default function PlayersListScreen() {
@@ -25,6 +27,8 @@ export default function PlayersListScreen() {
     addGroup,
     deleteGroup,
     getActivePlayers,
+    addMyselfToGroup,
+    userProfile,
   } = usePlayerStore();
 
   const players = getActivePlayers();
@@ -62,6 +66,11 @@ export default function PlayersListScreen() {
     );
   };
 
+  const handleAddMyself = () => {
+    addMyselfToGroup();
+    Alert.alert("Ajouté !", `${userProfile.name} a été ajouté au groupe.`);
+  };
+
   const PositionBadge = ({ position }) => {
     const styles = {
       G: {
@@ -84,9 +93,28 @@ export default function PlayersListScreen() {
     const style = styles[position] || styles.M;
     return (
       <View
-        className={`${style.bg} ${style.border} border w-10 h-10 rounded-xl items-center justify-center mr-4`}
+        className={`${style.bg} ${style.border} border px-2 py-0.5 rounded-lg`}
       >
-        <Text className={`${style.text} font-black text-lg`}>{position}</Text>
+        <Text className={`${style.text} font-black text-xs`}>{position}</Text>
+      </View>
+    );
+  };
+
+  const PlayerAvatar = ({ avatarSource, jerseyNumber }) => {
+    return (
+      <View className="mr-4 relative">
+        <Image
+          source={avatarSource}
+          style={{ width: 48, height: 48 }}
+          resizeMode="contain"
+        />
+        {jerseyNumber && (
+          <View className="absolute -bottom-1 -right-1 bg-dark rounded-full w-5 h-5 items-center justify-center border-2 border-white">
+            <Text className="text-white font-black text-[10px]">
+              {jerseyNumber}
+            </Text>
+          </View>
+        )}
       </View>
     );
   };
@@ -156,6 +184,12 @@ export default function PlayersListScreen() {
             />
           </View>
           <TouchableOpacity
+            className="bg-primary w-12 rounded-2xl items-center justify-center"
+            onPress={handleAddMyself}
+          >
+            <Ionicons name="person-add" size={24} color="white" />
+          </TouchableOpacity>
+          <TouchableOpacity
             className="bg-dark w-12 rounded-2xl items-center justify-center"
             onPress={() => router.push("/scan")}
           >
@@ -182,30 +216,38 @@ export default function PlayersListScreen() {
           data={filteredPlayers}
           keyExtractor={(item) => item.id}
           contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              className="bg-white p-4 rounded-2xl mb-3 shadow-sm flex-row items-center border border-gray-100 active:scale-[0.98]"
-              onPress={() => router.push(`/players/${item.id}`)}
-            >
-              <PositionBadge position={item.position} />
-              <View className="flex-1">
-                <Text className="text-lg font-bold text-dark">{item.name}</Text>
-                <View className="flex-row items-center mt-1">
-                  <View className="flex-row gap-0.5">
-                    {[1, 2, 3, 4, 5].map((lvl) => (
-                      <View
-                        key={lvl}
-                        className={`h-1.5 w-6 rounded-full ${
-                          lvl <= item.level ? "bg-primary" : "bg-gray-200"
-                        }`}
-                      />
-                    ))}
+          renderItem={({ item }) => {
+            const avatar = AVATARS.find((a) => a.id === item.avatarId) || AVATARS[0];
+            return (
+              <TouchableOpacity
+                className="bg-white p-4 rounded-2xl mb-3 shadow-sm flex-row items-center border border-gray-100 active:scale-[0.98]"
+                onPress={() => router.push(`/players/${item.id}`)}
+              >
+                <PlayerAvatar avatarSource={avatar.source} jerseyNumber={item.jerseyNumber} />
+                <View className="flex-1">
+                  <View className="flex-row items-center gap-2 mb-1">
+                    <Text className="text-lg font-bold text-dark flex-1" numberOfLines={1}>
+                      {item.name}
+                    </Text>
+                    <PositionBadge position={item.position} />
+                  </View>
+                  <View className="flex-row items-center">
+                    <View className="flex-row gap-0.5">
+                      {[1, 2, 3, 4, 5].map((lvl) => (
+                        <View
+                          key={lvl}
+                          className={`h-1.5 w-6 rounded-full ${
+                            lvl <= item.level ? "bg-primary" : "bg-gray-200"
+                          }`}
+                        />
+                      ))}
+                    </View>
                   </View>
                 </View>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color="#E5E7EB" />
-            </TouchableOpacity>
-          )}
+                <Ionicons name="chevron-forward" size={20} color="#E5E7EB" />
+              </TouchableOpacity>
+            );
+          }}
         />
       )}
 

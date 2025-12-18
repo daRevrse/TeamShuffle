@@ -36,20 +36,20 @@ export default function SessionConfigScreen() {
       desc: "Niveau égal",
       bg: "bg-blue-50",
     },
-    // {
-    //   id: "random",
-    //   name: "Aléatoire",
-    //   icon: "shuffle",
-    //   desc: "100% Hasard",
-    //   bg: "bg-orange-50",
-    // },
-    // {
-    //   id: "position",
-    //   name: "Par Postes",
-    //   icon: "football",
-    //   desc: "Tactique",
-    //   bg: "bg-green-50",
-    // },
+    {
+      id: "random",
+      name: "Aléatoire",
+      icon: "shuffle",
+      desc: "100% Hasard",
+      bg: "bg-orange-50",
+    },
+    {
+      id: "position",
+      name: "Par Postes",
+      icon: "football",
+      desc: "Tactique",
+      bg: "bg-green-50",
+    },
   ];
 
   const togglePlayer = (id) => {
@@ -84,6 +84,7 @@ export default function SessionConfigScreen() {
   };
 
   const handleChangeMethod = (newMethod) => {
+    console.log("Changement de méthode:", newMethod);
     setMethod(newMethod);
   };
 
@@ -172,17 +173,38 @@ export default function SessionConfigScreen() {
         <View className="flex-row gap-3 mb-6">
           {methods.map((m) => {
             const isActive = method === m.id;
+            // Définir les couleurs de background pour chaque mode
+            const bgColors = {
+              "bg-blue-50": "#EFF6FF",
+              "bg-orange-50": "#FFF7ED",
+              "bg-green-50": "#F0FDF4"
+            };
+
             return (
               <TouchableOpacity
                 key={m.id}
-                onPress={() => handleChangeMethod(m.id)}
-                className={`flex-1 p-3 rounded-2xl border-2 items-center justify-center ${
-                  isActive
-                    ? "bg-white border-primary shadow-md"
-                    : "bg-white border-transparent"
-                }`}
+                onPress={() => {
+                  console.log("Méthode cliquée:", m.id);
+                  handleChangeMethod(m.id);
+                }}
+                activeOpacity={0.7}
+                style={{
+                  flex: 1,
+                  padding: 12,
+                  borderRadius: 16,
+                  borderWidth: 2,
+                  borderColor: isActive ? "#007BFF" : "transparent",
+                  backgroundColor: "#FFFFFF",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
               >
-                <View className={`${m.bg} p-2 rounded-full mb-2`}>
+                <View style={{
+                  backgroundColor: bgColors[m.bg],
+                  padding: 8,
+                  borderRadius: 999,
+                  marginBottom: 8
+                }}>
                   <Ionicons
                     name={m.icon}
                     size={20}
@@ -190,9 +212,13 @@ export default function SessionConfigScreen() {
                   />
                 </View>
                 <Text
-                  className={`font-bold text-xs mb-0.5 text-center ${
-                    isActive ? "text-dark" : "text-gray-400"
-                  }`}
+                  style={{
+                    fontWeight: "bold",
+                    fontSize: 12,
+                    marginBottom: 2,
+                    textAlign: "center",
+                    color: isActive ? "#1A1A1A" : "#9CA3AF"
+                  }}
                 >
                   {m.name}
                 </Text>
