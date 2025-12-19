@@ -5,7 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TeamShuffle - Équipes équilibrées instantanément</title>
-    <meta name="description" content="Créez des équipes de foot équilibrées en quelques secondes. 100% gratuit et offline.">
+    <meta name="description"
+        content="Créez des équipes de foot équilibrées en quelques secondes. 100% gratuit et offline.">
 
     <style>
         * {
@@ -140,7 +141,7 @@
 
         .features-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            grid-template-columns: repeat(3, 1fr);
             gap: 12px;
         }
 
@@ -165,12 +166,29 @@
             fill: var(--black);
         }
 
-        .feature:nth-child(1) .feature-icon { fill: var(--yellow); }
-        .feature:nth-child(2) .feature-icon { fill: var(--dark-blue); }
-        .feature:nth-child(3) .feature-icon { fill: var(--dark-green); }
-        .feature:nth-child(4) .feature-icon { fill: var(--red); }
-        .feature:nth-child(5) .feature-icon { fill: var(--yellow); }
-        .feature:nth-child(6) .feature-icon { fill: var(--dark-blue); }
+        .feature:nth-child(1) .feature-icon {
+            fill: var(--yellow);
+        }
+
+        .feature:nth-child(2) .feature-icon {
+            fill: var(--dark-blue);
+        }
+
+        .feature:nth-child(3) .feature-icon {
+            fill: var(--dark-green);
+        }
+
+        .feature:nth-child(4) .feature-icon {
+            fill: var(--red);
+        }
+
+        .feature:nth-child(5) .feature-icon {
+            fill: var(--yellow);
+        }
+
+        .feature:nth-child(6) .feature-icon {
+            fill: var(--dark-blue);
+        }
 
         .feature h3 {
             font-size: 1rem;
@@ -305,6 +323,21 @@
             }
         }
 
+        @media (max-width: 1024px) {
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+                /* Tablette : 2 par ligne */
+            }
+        }
+
+        @media (max-width: 768px) {
+            .features-grid {
+                grid-template-columns: 1fr;
+                /* Mobile : 1 par ligne */
+            }
+        }
+
+
         /* Icon styles */
         .btn svg {
             width: 16px;
@@ -318,13 +351,16 @@
                 opacity: 0;
                 transform: translateY(15px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
 
-        .hero, .features, .install {
+        .hero,
+        .features,
+        .install {
             animation: fadeIn 0.5s ease;
         }
     </style>
@@ -337,15 +373,17 @@
         <h1>TeamShuffle</h1>
         <p class="tagline">Équipes équilibrées en quelques secondes • 100% gratuit & offline</p>
         <div class="cta-buttons">
-            <a href="https://github.com/daRevrse/TeamShuffle/releases/download/v1.0.1/TS-V101.apk" class="btn btn-primary">
+            <a href="https://github.com/daRevrse/TeamShuffle/releases/download/v2.0.0.0/TeamShuffle-v2.0.0.apk"
+                class="btn btn-primary">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                    <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+                    <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
                 </svg>
                 Télécharger Android
             </a>
             <a href="#install" class="btn btn-secondary">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    <path
+                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
                 </svg>
                 Guide d'installation
             </a>
@@ -359,42 +397,47 @@
             <div class="features-grid">
                 <div class="feature">
                     <svg class="feature-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
                     </svg>
                     <h3>Équilibrage intelligent</h3>
                     <p>Algorithme qui analyse niveau et poste pour créer des équipes parfaitement équilibrées.</p>
                 </div>
                 <div class="feature">
                     <svg class="feature-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                        <path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/>
+                        <path
+                            d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z" />
                     </svg>
                     <h3>100% Offline</h3>
                     <p>Fonctionne sans internet. Parfait pour les terrains où le réseau est limité.</p>
                 </div>
                 <div class="feature">
                     <svg class="feature-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                        <path d="M3 11h8V3H3v8zm2-6h4v4H5V5zm8-2v8h8V3h-8zm6 6h-4V5h4v4zM3 21h8v-8H3v8zm2-6h4v4H5v-4zm13-2h-2v3h-3v2h3v3h2v-3h3v-2h-3z"/>
+                        <path
+                            d="M3 11h8V3H3v8zm2-6h4v4H5V5zm8-2v8h8V3h-8zm6 6h-4V5h4v4zM3 21h8v-8H3v8zm2-6h4v4H5v-4zm13-2h-2v3h-3v2h3v3h2v-3h3v-2h-3z" />
                     </svg>
                     <h3>Partage QR Code</h3>
                     <p>Partagez votre profil via QR Code. Ajout instantané par scan.</p>
                 </div>
                 <div class="feature">
                     <svg class="feature-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                        <path d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/>
+                        <path
+                            d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z" />
                     </svg>
                     <h3>Historique complet</h3>
                     <p>Gardez trace de tous vos matchs et visualisez vos statistiques.</p>
                 </div>
                 <div class="feature">
                     <svg class="feature-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                        <path
+                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
                     </svg>
                     <h3>Avatars & numéros</h3>
                     <p>Personnalisez votre profil avec avatars et numéros de maillot.</p>
                 </div>
                 <div class="feature">
                     <svg class="feature-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm4.59-12.42L10 14.17l-2.59-2.58L6 13l4 4 8-8z"/>
+                        <path
+                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm4.59-12.42L10 14.17l-2.59-2.58L6 13l4 4 8-8z" />
                     </svg>
                     <h3>Mode Compétition</h3>
                     <p>Organisez tournois et championnats avec gestion automatique.</p>
