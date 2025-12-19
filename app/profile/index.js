@@ -7,6 +7,7 @@ import {
   Share,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from "react-native";
 import { Stack, useRouter } from "expo-router";
 import { useState, useEffect } from "react";
@@ -14,6 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { usePlayerStore } from "../../store/usePlayerStore";
 import QRCode from "react-native-qrcode-svg";
 import * as Linking from "expo-linking";
+import { AVATARS } from "../../constants/avatars";
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -23,10 +25,20 @@ export default function ProfileScreen() {
   const [name, setName] = useState(userProfile.name);
   const [level, setLevel] = useState(userProfile.level);
   const [position, setPosition] = useState(userProfile.position);
+  const [avatarId, setAvatarId] = useState(userProfile.avatarId || 1);
+  const [jerseyNumber, setJerseyNumber] = useState(
+    userProfile.jerseyNumber ? String(userProfile.jerseyNumber) : ""
+  );
 
   // Mettre à jour le store quand on quitte ou sauvegarde
   const handleSave = () => {
-    updateUserProfile({ name, level, position });
+    updateUserProfile({
+      name,
+      level,
+      position,
+      avatarId,
+      jerseyNumber: jerseyNumber ? parseInt(jerseyNumber) : null,
+    });
     if (router.canGoBack()) router.back();
   };
 
@@ -100,11 +112,29 @@ export default function ProfileScreen() {
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 50 }}>
         {/* --- CARTE D'IDENTITÉ (QR CODE) --- */}
         <View className="items-center bg-white p-6 rounded-3xl shadow-sm border border-gray-100 mb-8">
+          {/* Avatar avec badge numéro */}
+          <View className="relative mb-4">
+            <View className="bg-gray-50 rounded-full p-4">
+              <Image
+                source={AVATARS.find((a) => a.id === avatarId)?.source || AVATARS[0].source}
+                style={{ width: 80, height: 80 }}
+                resizeMode="contain"
+              />
+            </View>
+            {jerseyNumber && (
+              <View className="absolute -bottom-1 -right-1 bg-dark w-10 h-10 rounded-full items-center justify-center border-2 border-white shadow-lg">
+                <Text className="text-white font-black text-sm">
+                  {jerseyNumber}
+                </Text>
+              </View>
+            )}
+          </View>
+
           <View className="bg-white p-2 rounded-xl shadow-sm mb-4">
             {/* Le QR Code contient le lien Deep Link */}
             <QRCode
               value={generateShareData()}
-              size={180}
+              size={160}
               color="black"
               backgroundColor="white"
             />
@@ -153,6 +183,37 @@ export default function ProfileScreen() {
           Modifier mes infos
         </Text>
 
+        {/* Sélecteur Avatar */}
+        <View className="bg-white p-4 rounded-2xl border border-gray-100 mb-4">
+          <Text className="text-gray-400 text-xs font-bold uppercase mb-3">
+            Choisis ton avatar
+          </Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            className="flex-row"
+          >
+            {AVATARS.map((avatar) => {
+              const isActive = avatarId === avatar.id;
+              return (
+                <TouchableOpacity
+                  key={avatar.id}
+                  onPress={() => setAvatarId(avatar.id)}
+                  className={`mr-3 w-16 h-16 rounded-full items-center justify-center border-3 ${
+                    isActive ? "border-primary bg-blue-50" : "border-gray-200 bg-gray-50"
+                  }`}
+                >
+                  <Image
+                    source={avatar.source}
+                    style={{ width: 48, height: 48 }}
+                    resizeMode="contain"
+                  />
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
+
         {/* Nom */}
         <View className="bg-white p-4 rounded-2xl border border-gray-100 mb-4">
           <Text className="text-gray-400 text-xs font-bold uppercase mb-1">
@@ -163,6 +224,21 @@ export default function ProfileScreen() {
             onChangeText={setName}
             className="text-lg font-bold text-dark"
             placeholder="Ton pseudo"
+          />
+        </View>
+
+        {/* Numéro de Maillot */}
+        <View className="bg-white p-4 rounded-2xl border border-gray-100 mb-4">
+          <Text className="text-gray-400 text-xs font-bold uppercase mb-1">
+            Numéro de Maillot (Optionnel)
+          </Text>
+          <TextInput
+            value={jerseyNumber}
+            onChangeText={setJerseyNumber}
+            className="text-lg font-bold text-dark text-center"
+            placeholder="Ex: 10"
+            keyboardType="number-pad"
+            maxLength={2}
           />
         </View>
 

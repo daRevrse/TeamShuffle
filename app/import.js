@@ -9,7 +9,7 @@ export default function ImportScreen() {
   // Expo Router récupère automatiquement les paramètres de l'URL (?data=...)
   const { data } = useLocalSearchParams();
 
-  const { addPlayer, activeGroupId, groups } = usePlayerStore();
+  const { addPlayer, activeGroupId, groups, players } = usePlayerStore();
 
   useEffect(() => {
     if (data) {
@@ -40,16 +40,56 @@ export default function ImportScreen() {
       // 3. Récupération du nom du groupe actuel pour le message
       const currentGroup = groups.find((g) => g.id === activeGroupId);
       const groupName = currentGroup ? currentGroup.name : "Général";
+      const targetGroupId = activeGroupId || "default";
 
-      // 4. Ajout au store
+      // 4. Vérification des doublons
+      const duplicatePlayer = players.find(
+        (p) =>
+          p.name.toLowerCase().trim() === playerData.n.toLowerCase().trim() &&
+          p.groupId === targetGroupId
+      );
+
+      if (duplicatePlayer) {
+        // Doublon détecté - proposer les options
+        Alert.alert(
+          "Doublon détecté",
+          `Un joueur nommé "${playerData.n}" existe déjà dans le groupe "${groupName}". Que voulez-vous faire ?`,
+          [
+            { text: "Annuler l'import", style: "cancel", onPress: () => router.replace("/players") },
+            {
+              text: "Ajouter quand même",
+              onPress: () => {
+                addPlayer({
+                  name: playerData.n,
+                  level: playerData.l || 3,
+                  position: playerData.p || "M",
+                  groupId: targetGroupId,
+                  avatarId: playerData.a || 1,
+                  jerseyNumber: playerData.j || null,
+                });
+                Alert.alert(
+                  "Ajouté !",
+                  `Le joueur ${playerData.n} a été ajouté au groupe "${groupName}".`,
+                  [{ text: "Voir l'équipe", onPress: () => router.replace("/players") }]
+                );
+              },
+            },
+          ]
+        );
+        return;
+      }
+
+      // 5. Ajout au store (pas de doublon)
       addPlayer({
         name: playerData.n,
         level: playerData.l || 3,
         position: playerData.p || "M",
-        groupId: activeGroupId || "default",
+        groupId: targetGroupId,
+        avatarId: playerData.a || 1,
+        jerseyNumber: playerData.j || null,
       });
 
-      // 5. Succès et Redirection
+      // 6. Succès et Redirection
       Alert.alert(
         "Succès !",
         `Le joueur ${playerData.n} a été ajouté au groupe "${groupName}".`,

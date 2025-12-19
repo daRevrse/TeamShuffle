@@ -31,6 +31,13 @@ export const usePlayerStore = create(
           activeGroupId: Date.now().toString(),
         })),
 
+      updateGroup: (groupId, name) =>
+        set((state) => ({
+          groups: state.groups.map((g) =>
+            g.id === groupId ? { ...g, name } : g
+          ),
+        })),
+
       deleteGroup: (groupId) =>
         set((state) => {
           if (groupId === "default") return state;
@@ -45,6 +52,13 @@ export const usePlayerStore = create(
             activeGroupId: "default",
           };
         }),
+
+      clearGroup: (groupId) =>
+        set((state) => ({
+          players: state.players.map((p) =>
+            p.groupId === groupId ? { ...p, groupId: "default" } : p
+          ),
+        })),
 
       setActiveGroup: (id) => set({ activeGroupId: id }),
 
@@ -99,32 +113,62 @@ export const usePlayerStore = create(
         );
       },
 
-      // Ajouter l'utilisateur comme joueur dans le groupe actif
+      // Ajouter l'utilisateur comme joueur dans le groupe actif (crée une copie)
       addMyselfToGroup: () =>
         set((state) => {
           const { userProfile, activeGroupId, players } = state;
 
           // Vérifier si l'utilisateur n'existe pas déjà dans le groupe
+          // On vérifie par nom ET groupe car on peut avoir plusieurs copies
           const alreadyExists = players.some(
-            (p) => p.id === userProfile.id && (p.groupId || "default") === activeGroupId
+            (p) => p.name === userProfile.name &&
+                   (p.groupId || "default") === activeGroupId &&
+                   p.avatarId === userProfile.avatarId
           );
 
           if (alreadyExists) {
             return state; // Ne rien faire si déjà présent
           }
 
-          // Ajouter l'utilisateur comme joueur
+          // Créer une copie de l'utilisateur pour ce groupe avec un ID unique
           return {
             players: [
               ...players,
               {
                 ...userProfile,
+                id: "user_" + Date.now().toString(), // Nouvel ID unique
                 groupId: activeGroupId || "default",
                 createdAt: new Date().toISOString(),
               },
             ],
           };
         }),
+
+      // Ajouter plusieurs joueurs existants à un groupe (crée des copies)
+      addPlayersToGroup: (playerIds, targetGroupId) =>
+        set((state) => {
+          // Créer des copies des joueurs sélectionnés pour le nouveau groupe
+          const newPlayers = [];
+          playerIds.forEach((playerId) => {
+            const playerToCopy = state.players.find((p) => p.id === playerId);
+            if (playerToCopy) {
+              newPlayers.push({
+                ...playerToCopy,
+                id: Date.now().toString() + "_" + playerId, // Nouvel ID unique
+                groupId: targetGroupId,
+                createdAt: new Date().toISOString(),
+              });
+            }
+          });
+
+          return { players: [...state.players, ...newPlayers] };
+        }),
+
+      // Retirer un joueur d'un groupe (supprime cette copie du joueur)
+      removePlayerFromGroup: (playerId) =>
+        set((state) => ({
+          players: state.players.filter((p) => p.id !== playerId),
+        })),
     }),
     {
       name: "teamshuffle-storage-v2",

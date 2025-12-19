@@ -58,7 +58,7 @@ export default function SettingsScreen() {
   };
 
   const handleContact = () => {
-    Linking.openURL("mailto:support@teamshuffle.app");
+    Linking.openURL("mailto:support@flowkraftagency.com");
   };
 
   // Composant pour une ligne de paramètre
@@ -138,7 +138,7 @@ export default function SettingsScreen() {
           icon="information-circle"
           color="#34C759"
           title="Version de l'application"
-          subtitle={`v${Constants.expoConfig?.version || "1.0.0"}`}
+          subtitle={`v2.0.0`}
           onPress={() => {}}
         />
 
@@ -150,10 +150,56 @@ export default function SettingsScreen() {
           onPress={handleContact}
         />
 
+        {/* Section RÉSEAUX SOCIAUX */}
+        <Text className="text-gray-400 font-bold text-xs uppercase mb-3 ml-2 mt-4">
+          FlowKraft Agency
+        </Text>
+
+        <SettingItem
+          icon="globe-outline"
+          color="#007BFF"
+          title="Site Web"
+          subtitle="flowkraftagency.com"
+          onPress={() => Linking.openURL("https://flowkraftagency.com")}
+        />
+
+        <SettingItem
+          icon="logo-instagram"
+          color="#E1306C"
+          title="Instagram"
+          subtitle="@flowkraftagency"
+          onPress={() =>
+            Linking.openURL("https://www.instagram.com/flowkraft_agency/")
+          }
+        />
+
+        <SettingItem
+          icon="logo-linkedin"
+          color="#0A66C2"
+          title="LinkedIn"
+          subtitle="FlowKraft Agency"
+          onPress={() =>
+            Linking.openURL("https://linkedin.com/company/flowkraft-agency")
+          }
+        />
+
+        <SettingItem
+          icon="logo-facebook"
+          color="#1877F2"
+          title="Facebook"
+          subtitle="FlowKraft Agency"
+          onPress={() =>
+            Linking.openURL("https://facebook.com/flowkraftagency")
+          }
+        />
+
         {/* Footer */}
-        <View className="items-center mt-8">
+        <View className="items-center mt-8 mb-4">
           <Ionicons name="football" size={48} color="#E5E7EB" />
           <Text className="text-gray-300 font-bold mt-2">TeamShuffle 2025</Text>
+          <Text className="text-gray-400 text-xs mt-1">
+            Développé par FlowKraft Agency
+          </Text>
         </View>
       </ScrollView>
     </View>

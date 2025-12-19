@@ -84,7 +84,9 @@ export default function HomeScreen() {
             <View className="bg-green-100 w-9 h-9 rounded-xl items-center justify-center mb-2">
               <Ionicons name="people" size={18} color="#34C759" />
             </View>
-            <Text className="text-dark font-bold text-base mb-0.5">Effectif</Text>
+            <Text className="text-dark font-bold text-base mb-0.5">
+              Effectif
+            </Text>
             <Text className="text-gray-400 text-[11px] font-medium">
               Gérer joueurs
             </Text>
@@ -98,7 +100,9 @@ export default function HomeScreen() {
             <View className="bg-orange-100 w-9 h-9 rounded-xl items-center justify-center mb-2">
               <Ionicons name="time" size={18} color="#FF9500" />
             </View>
-            <Text className="text-dark font-bold text-base mb-0.5">Historique</Text>
+            <Text className="text-dark font-bold text-base mb-0.5">
+              Historique
+            </Text>
             <Text className="text-gray-400 text-[11px] font-medium">
               Matchs passés
             </Text>
@@ -141,16 +145,14 @@ export default function HomeScreen() {
             color="#6C757D"
             className="mr-2"
           />
-          <Text className="text-gray-500 font-bold text-xs">
-            Paramètres
-          </Text>
+          <Text className="text-gray-500 font-bold text-xs">Paramètres</Text>
         </TouchableOpacity>
       </View>
 
       {/* Footer minimaliste */}
       <View className="items-center pb-6">
         <Text className="text-gray-300 text-[9px] font-bold uppercase tracking-widest">
-          Version 1.0 • FlowKraft
+          Version 2.0 • FlowKraft
         </Text>
       </View>
     </View>

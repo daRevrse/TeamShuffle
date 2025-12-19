@@ -60,6 +60,39 @@ export default function PlayerFormScreen() {
     if (!name.trim())
       return Alert.alert("Oups !", "Le joueur doit avoir un nom.");
 
+    // Vérifier les doublons uniquement lors de la création
+    if (!isEditing) {
+      const duplicatePlayer = players.find(
+        (p) => p.name.toLowerCase().trim() === name.toLowerCase().trim() &&
+               p.groupId === groupId
+      );
+
+      if (duplicatePlayer) {
+        return Alert.alert(
+          "Doublon détecté",
+          `Un joueur nommé "${name}" existe déjà dans ce groupe. Voulez-vous quand même l'ajouter ?`,
+          [
+            { text: "Annuler", style: "cancel" },
+            {
+              text: "Ajouter quand même",
+              onPress: () => {
+                const playerData = {
+                  name,
+                  level,
+                  position,
+                  groupId,
+                  avatarId,
+                  jerseyNumber: jerseyNumber ? parseInt(jerseyNumber) : null,
+                };
+                addPlayer(playerData);
+                router.back();
+              },
+            },
+          ]
+        );
+      }
+    }
+
     const playerData = {
       name,
       level,

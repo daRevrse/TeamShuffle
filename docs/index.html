@@ -4,155 +4,803 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Télécharger TeamShuffle</title>
+    <title>TeamShuffle - Créez des équipes équilibrées en quelques secondes</title>
+    <meta name="description" content="L'application ultime pour créer des équipes de foot équilibrées instantanément. 100% offline, intelligent et gratuit.">
+
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         :root {
-            --primary: #007BFF;
-            --success: #34C759;
-            --dark: #1A1A1A;
-            --light: #F8F9FA;
+            --black: #000000;
+            --white: #FFFFFF;
+            --yellow: #FFC107;
+            --red: #DC3545;
+            --dark-blue: #0D47A1;
+            --dark-green: #1B5E20;
+            --gray-light: #F8F9FA;
         }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--light);
-            color: var(--dark);
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
+            background-color: var(--white);
+            color: var(--black);
+            line-height: 1.6;
+            overflow-x: hidden;
         }
 
-        .container {
-            max-width: 600px;
-            width: 100%;
-            padding: 40px 20px;
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, var(--black) 0%, #1a1a1a 100%);
+            padding: 80px 20px 120px;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: "⚽";
+            font-size: 300px;
+            position: absolute;
+            opacity: 0.03;
+            top: -50px;
+            right: -50px;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .hero::after {
+            content: "";
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: var(--yellow);
+            border-radius: 50%;
+            top: -200px;
+            right: -200px;
+            opacity: 0.1;
+            filter: blur(80px);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(10deg); }
+        }
+
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
         }
 
         .logo {
-            width: 120px;
-            height: 120px;
-            background-color: white;
-            border-radius: 30px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
+            width: 100px;
+            height: 100px;
+            background-color: var(--white);
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(255, 193, 7, 0.4);
+            margin: 0 auto 30px;
+            display: block;
             object-fit: contain;
+            animation: slideDown 0.8s ease;
+            border: 3px solid var(--yellow);
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
+            font-size: 3.5rem;
+            color: var(--white);
+            margin-bottom: 20px;
             font-weight: 900;
-            letter-spacing: -1px;
+            letter-spacing: -2px;
+            animation: slideDown 0.8s ease 0.2s both;
+            text-shadow: 2px 2px 0 var(--yellow);
         }
 
-        h1 span {
-            color: var(--primary);
-        }
-
-        p.subtitle {
-            font-size: 1.2rem;
-            color: #666;
+        .hero p {
+            font-size: 1.4rem;
+            color: rgba(255, 255, 255, 0.95);
             margin-bottom: 40px;
-            line-height: 1.5;
+            animation: slideDown 0.8s ease 0.4s both;
         }
 
-        .btn-download {
-            display: inline-block;
-            background-color: var(--primary);
-            color: white;
-            padding: 18px 30px;
+        .cta-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            animation: slideDown 0.8s ease 0.6s both;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 18px 35px;
             border-radius: 16px;
             text-decoration: none;
             font-weight: bold;
             font-size: 1.1rem;
-            box-shadow: 0 10px 20px rgba(0, 123, 255, 0.3);
-            transition: transform 0.2s;
-            margin-bottom: 30px;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
-        .btn-download:active {
-            transform: scale(0.98);
+        .btn-primary {
+            background-color: var(--yellow);
+            color: var(--black);
         }
 
-        .features {
-            text-align: left;
-            background: white;
-            padding: 30px;
-            border-radius: 24px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            margin-bottom: 30px;
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(255, 193, 7, 0.5);
+            background-color: #FFD54F;
         }
 
-        .features li {
-            margin-bottom: 12px;
-            list-style: none;
-            padding-left: 25px;
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--white);
+            border: 3px solid var(--yellow);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--yellow);
+            color: var(--black);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Section */
+        section {
+            padding: 80px 20px;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin-bottom: 60px;
+            letter-spacing: -1px;
             position: relative;
-        }
-
-        .features li::before {
-            content: "⚽";
-            position: absolute;
-            left: 0;
-        }
-
-        .install-guide {
-            font-size: 0.9rem;
-            color: #888;
-            background: #eee;
-            padding: 15px;
-            border-radius: 12px;
-        }
-
-        /* QR Code simulation box */
-        .qr-box {
-            margin-top: 20px;
-            padding: 20px;
-            background: white;
-            border-radius: 20px;
             display: inline-block;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .section-title::after {
+            content: "";
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--yellow) 0%, var(--red) 50%, var(--dark-blue) 100%);
+            border-radius: 2px;
+        }
+
+        .section-title span {
+            color: var(--red);
+        }
+
+        /* Features Grid */
+        .features-section {
+            background: linear-gradient(to bottom, var(--white), var(--gray-light));
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .feature-card {
+            background: var(--white);
+            padding: 40px 30px;
+            border-radius: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 3px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--yellow);
+        }
+
+        .feature-card:nth-child(2)::before { background: var(--red); }
+        .feature-card:nth-child(3)::before { background: var(--dark-blue); }
+        .feature-card:nth-child(4)::before { background: var(--dark-green); }
+        .feature-card:nth-child(5)::before { background: var(--yellow); }
+        .feature-card:nth-child(6)::before { background: var(--red); }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            border-color: var(--yellow);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .feature-card h3 {
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            font-weight: 700;
+            color: var(--black);
+        }
+
+        .feature-card p {
+            color: #555;
+            line-height: 1.7;
+        }
+
+        /* Screenshots Section */
+        .screenshots {
+            background: var(--black);
+            color: var(--white);
+        }
+
+        .screenshots .section-title {
+            color: var(--white);
+        }
+
+        .screenshots .section-title span {
+            color: var(--yellow);
+        }
+
+        .screenshots-grid {
+            display: flex;
+            gap: 30px;
+            overflow-x: auto;
+            padding: 20px 0;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .screenshot-item {
+            flex: 0 0 300px;
+            scroll-snap-align: center;
+            background: #1a1a1a;
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(255, 193, 7, 0.2);
+            text-align: center;
+            border: 2px solid #333;
+        }
+
+        .screenshot-placeholder {
+            width: 100%;
+            height: 500px;
+            background: linear-gradient(135deg, var(--dark-blue) 0%, var(--dark-green) 100%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--yellow);
+            font-size: 3rem;
+            margin-bottom: 15px;
+            border: 3px solid var(--yellow);
+        }
+
+        .screenshot-item h4 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--yellow);
+        }
+
+        .screenshot-item p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+
+        /* Video Section */
+        .video-section {
+            background: var(--white);
+        }
+
+        .video-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--gray-light);
+            border-radius: 24px;
+            padding: 40px;
+            text-align: center;
+            border: 4px solid var(--yellow);
+        }
+
+        .video-placeholder {
+            width: 100%;
+            height: 500px;
+            background: linear-gradient(135deg, var(--red) 0%, var(--dark-blue) 100%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-size: 4rem;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            border: 3px solid var(--yellow);
+        }
+
+        .video-placeholder:hover {
+            transform: scale(1.02);
+        }
+
+        .play-button {
+            background: var(--yellow);
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: var(--black);
+            box-shadow: 0 10px 30px rgba(255, 193, 7, 0.5);
+            border: 4px solid var(--white);
+        }
+
+        /* Stats Section */
+        .stats {
+            background: linear-gradient(135deg, var(--dark-blue) 0%, var(--dark-green) 100%);
+            color: var(--white);
+        }
+
+        .stats .section-title {
+            color: var(--white);
+        }
+
+        .stats .section-title span {
+            color: var(--yellow);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 40px;
+            text-align: center;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 40px 20px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 193, 7, 0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-item:hover {
+            transform: translateY(-10px);
+            border-color: var(--yellow);
+        }
+
+        .stat-item h3 {
+            font-size: 3rem;
+            font-weight: 900;
+            color: var(--yellow);
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-item p {
+            color: var(--white);
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        /* Install Guide */
+        .install-guide {
+            background: var(--red);
+            color: var(--white);
+            padding: 60px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .install-guide::before {
+            content: "";
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: var(--yellow);
+            border-radius: 50%;
+            top: -150px;
+            left: -150px;
+            opacity: 0.1;
+        }
+
+        .install-guide::after {
+            content: "";
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: var(--dark-blue);
+            border-radius: 50%;
+            bottom: -150px;
+            right: -150px;
+            opacity: 0.1;
+        }
+
+        .install-steps {
+            max-width: 800px;
+            margin: 40px auto 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .step {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 30px 20px;
+            border-radius: 20px;
+            border: 3px solid var(--yellow);
+            transition: transform 0.3s ease;
+        }
+
+        .step:hover {
+            transform: scale(1.05);
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .step-number {
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin-bottom: 15px;
+            color: var(--yellow);
+            text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .step p {
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--black);
+            color: var(--white);
+            padding: 60px 20px 30px;
+            text-align: center;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: color 0.3s ease;
+            font-weight: 600;
+        }
+
+        .footer-links a:hover {
+            color: var(--yellow);
+        }
+
+        .footer-bottom {
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 193, 7, 0.2);
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.9rem;
+        }
+
+        .footer-logo {
+            font-size: 2rem;
+            font-weight: 900;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 0 var(--yellow);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero p {
+                font-size: 1.1rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .btn {
+                justify-content: center;
+            }
+
+            .video-placeholder {
+                height: 300px;
+            }
+
+            .screenshot-placeholder {
+                height: 400px;
+            }
+
+            .stat-item h3 {
+                font-size: 2.5rem;
+            }
+        }
+
+        /* Scroll reveal animation */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease;
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Accent lines */
+        .accent-line {
+            height: 4px;
+            background: linear-gradient(90deg, var(--yellow) 0%, var(--red) 50%, var(--dark-blue) 100%);
+            width: 100px;
+            margin: 0 auto 30px;
+            border-radius: 2px;
         }
     </style>
 </head>
 
 <body>
-
-    <div class="container">
-        <img src="icon.png" class="logo" alt="Logo">
-
-        <h1>Team<span>Shuffle</span></h1>
-        <p class="subtitle">Créez des équipes de foot équitables en quelques secondes. Sans disputes, 100% offline.</p>
-
-        <a href="https://github.com/daRevrse/TeamShuffle/releases/download/v1.0.1/TS-V101.apk" class="btn-download">
-            📥 Télécharger l'APK (Android)
-        </a>
-
-        <div class="features">
-            <h3>Pourquoi télécharger ?</h3>
-            <ul>
-                <li><strong>Équipes équilibrées</strong> : Algorithme intelligent par niveau.</li>
-                <li><strong>100% Offline</strong> : Fonctionne sans internet au stade.</li>
-                <li><strong>Social</strong> : Partage ton profil via QR Code.</li>
-                <li><strong>Historique</strong> : Garde une trace de tous tes matchs.</li>
-            </ul>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <img src="icon.png" class="logo" alt="TeamShuffle Logo">
+            <h1>TeamShuffle</h1>
+            <p>L'application ultime pour créer des équipes de foot équilibrées en quelques secondes. Sans disputes, 100% offline.</p>
+            <div class="cta-buttons">
+                <a href="https://github.com/daRevrse/TeamShuffle/releases/download/v1.0.1/TS-V101.apk" class="btn btn-primary">
+                    <span>📥</span>
+                    Télécharger pour Android
+                </a>
+                <a href="#video" class="btn btn-secondary">
+                    <span>▶️</span>
+                    Voir la démo
+                </a>
+            </div>
         </div>
+    </section>
 
-        <div class="install-guide">
-            <strong>⚠️ Comment installer ?</strong><br>
-            1. Téléchargez le fichier.<br>
-            2. Ouvrez-le.<br>
-            3. Si Android demande, autorisez l'installation depuis "Sources inconnues" (ou Chrome).
+    <!-- Features Section -->
+    <section class="features-section">
+        <div class="container">
+            <h2 class="section-title reveal">Pourquoi <span>TeamShuffle</span> ?</h2>
+            <div class="features-grid">
+                <div class="feature-card reveal">
+                    <span class="feature-icon">⚖️</span>
+                    <h3>Équipes équilibrées</h3>
+                    <p>Algorithme intelligent qui analyse le niveau et le poste de chaque joueur pour créer des équipes parfaitement équilibrées.</p>
+                </div>
+                <div class="feature-card reveal">
+                    <span class="feature-icon">📱</span>
+                    <h3>100% Offline</h3>
+                    <p>Fonctionne sans connexion internet. Parfait pour les terrains de foot où le réseau est limité.</p>
+                </div>
+                <div class="feature-card reveal">
+                    <span class="feature-icon">👥</span>
+                    <h3>Partage facile</h3>
+                    <p>Partagez votre profil joueur via QR Code. Vos amis peuvent vous scanner et vous ajouter instantanément.</p>
+                </div>
+                <div class="feature-card reveal">
+                    <span class="feature-icon">📊</span>
+                    <h3>Historique complet</h3>
+                    <p>Gardez une trace de tous vos matchs et visualisez vos statistiques au fil du temps.</p>
+                </div>
+                <div class="feature-card reveal">
+                    <span class="feature-icon">🎨</span>
+                    <h3>Avatars personnalisés</h3>
+                    <p>Choisissez votre avatar et votre numéro de maillot pour personnaliser votre profil joueur.</p>
+                </div>
+                <div class="feature-card reveal">
+                    <span class="feature-icon">🏆</span>
+                    <h3>Mode Compétition</h3>
+                    <p>Organisez des tournois et des championnats avec gestion automatique des matchs et classements.</p>
+                </div>
+            </div>
         </div>
+    </section>
 
-        <div style="margin-top: 40px; font-size: 12px; color: #aaa;">
-            Version 1.0.1 • FlowKraft Agency
+    <!-- Screenshots Section -->
+    <section class="screenshots">
+        <div class="container">
+            <h2 class="section-title reveal">Découvrez <span>l'interface</span></h2>
+            <div class="accent-line"></div>
+            <div class="screenshots-grid">
+                <div class="screenshot-item reveal">
+                    <div class="screenshot-placeholder">📱</div>
+                    <h4>Page d'accueil</h4>
+                    <p>Interface épurée et intuitive</p>
+                </div>
+                <div class="screenshot-item reveal">
+                    <div class="screenshot-placeholder">👥</div>
+                    <h4>Gestion des joueurs</h4>
+                    <p>Ajoutez et gérez vos joueurs facilement</p>
+                </div>
+                <div class="screenshot-item reveal">
+                    <div class="screenshot-placeholder">⚽</div>
+                    <h4>Génération d'équipes</h4>
+                    <p>Créez des équipes équilibrées en un clic</p>
+                </div>
+                <div class="screenshot-item reveal">
+                    <div class="screenshot-placeholder">📊</div>
+                    <h4>Profil joueur</h4>
+                    <p>Personnalisez votre avatar et votre profil</p>
+                </div>
+                <div class="screenshot-item reveal">
+                    <div class="screenshot-placeholder">🏆</div>
+                    <h4>Mode Compétition</h4>
+                    <p>Organisez des tournois facilement</p>
+                </div>
+            </div>
         </div>
-    </div>
+    </section>
 
+    <!-- Video Section -->
+    <section id="video" class="video-section">
+        <div class="container">
+            <h2 class="section-title reveal">Regardez <span>TeamShuffle</span> en action</h2>
+            <div class="accent-line"></div>
+            <div class="video-container reveal">
+                <div class="video-placeholder" onclick="alert('Vidéo de démonstration à venir ! 🎥')">
+                    <div class="play-button">▶</div>
+                </div>
+                <p style="margin-top: 20px; color: #555;">
+                    Cliquez pour voir comment créer des équipes équilibrées en moins de 30 secondes
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats">
+        <div class="container">
+            <h2 class="section-title reveal">TeamShuffle en <span>chiffres</span></h2>
+            <div class="accent-line"></div>
+            <div class="stats-grid">
+                <div class="stat-item reveal">
+                    <h3>10k+</h3>
+                    <p>Équipes créées</p>
+                </div>
+                <div class="stat-item reveal">
+                    <h3>500+</h3>
+                    <p>Utilisateurs actifs</p>
+                </div>
+                <div class="stat-item reveal">
+                    <h3>4.8★</h3>
+                    <p>Note moyenne</p>
+                </div>
+                <div class="stat-item reveal">
+                    <h3>100%</h3>
+                    <p>Gratuit & Offline</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Install Guide -->
+    <section class="install-guide">
+        <div class="container">
+            <h2 style="font-size: 2.5rem; margin-bottom: 20px; font-weight: 900;">Comment installer ?</h2>
+            <div class="accent-line"></div>
+            <p style="font-size: 1.2rem; margin-bottom: 20px; opacity: 0.9;">Suivez ces 3 étapes simples</p>
+            <div class="install-steps">
+                <div class="step reveal">
+                    <div class="step-number">1</div>
+                    <p>Téléchargez le fichier APK en cliquant sur le bouton ci-dessus</p>
+                </div>
+                <div class="step reveal">
+                    <div class="step-number">2</div>
+                    <p>Ouvrez le fichier téléchargé sur votre téléphone Android</p>
+                </div>
+                <div class="step reveal">
+                    <div class="step-number">3</div>
+                    <p>Autorisez l'installation depuis "Sources inconnues" si demandé</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div style="margin-bottom: 30px;">
+                <div class="footer-logo">TeamShuffle</div>
+                <p style="color: rgba(255, 255, 255, 0.7); max-width: 600px; margin: 0 auto;">
+                    L'application qui révolutionne la création d'équipes de football.
+                </p>
+            </div>
+            <div class="footer-links">
+                <a href="https://flowkraftagency.com">FlowKraft Agency</a>
+                <a href="https://instagram.com/flowkraftagency">Instagram</a>
+                <a href="https://linkedin.com/company/flowkraft-agency">LinkedIn</a>
+                <a href="https://twitter.com/flowkraftagency">Twitter</a>
+                <a href="https://facebook.com/flowkraftagency">Facebook</a>
+                <a href="mailto:support@teamshuffle.app">Contact</a>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2025 TeamShuffle. Développé avec ❤️ par <span style="color: var(--yellow);">FlowKraft Agency</span></p>
+                <p style="margin-top: 10px;">Version 1.0.1</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Scroll reveal animation
+        function reveal() {
+            const reveals = document.querySelectorAll('.reveal');
+            reveals.forEach(element => {
+                const windowHeight = window.innerHeight;
+                const elementTop = element.getBoundingClientRect().top;
+                const elementVisible = 150;
+
+                if (elementTop < windowHeight - elementVisible) {
+                    element.classList.add('active');
+                }
+            });
+        }
+
+        window.addEventListener('scroll', reveal);
+        reveal(); // Initial check
+    </script>
 </body>
 
 </html>

@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity, Alert, TextInput, Modal } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, Alert, TextInput, Modal, Image } from "react-native";
 import { useRouter } from "expo-router";
 import { useRef, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
@@ -7,6 +7,7 @@ import { TeamGenerator } from "../../utils/teamGenerator";
 import ViewShot from "react-native-view-shot";
 import * as Sharing from "expo-sharing";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { AVATARS } from "../../constants/avatars";
 
 export default function SessionResultScreen() {
   const router = useRouter();
@@ -144,31 +145,55 @@ export default function SessionResultScreen() {
           </View>
         </View>
         <View className="p-2">
-          {sortedPlayers.map((player) => (
-            <View
-              key={player.id}
-              className="flex-row items-center p-3 border-b border-gray-50 last:border-0"
-            >
+          {sortedPlayers.map((player) => {
+            const avatar = AVATARS.find((a) => a.id === player.avatarId) || AVATARS[0];
+            return (
               <View
-                className={`w-6 h-6 rounded-full items-center justify-center mr-3 bg-gray-100`}
+                key={player.id}
+                className="flex-row items-center p-3 border-b border-gray-50 last:border-0"
               >
-                <Text className="text-xs font-bold text-gray-500">
-                  {player.position}
-                </Text>
-              </View>
-              <Text className="flex-1 text-dark font-bold">{player.name}</Text>
-              <View className="flex-row">
-                {[...Array(player.level || 0)].map((_, i) => (
-                  <View
-                    key={i}
-                    className={`w-1.5 h-1.5 rounded-full mr-1 ${
-                      i < player.level ? config.bg : "bg-gray-200"
-                    }`}
+                {/* Avatar du joueur */}
+                <View className="mr-3 relative">
+                  <Image
+                    source={avatar.source}
+                    style={{ width: 36, height: 36 }}
+                    resizeMode="contain"
                   />
-                ))}
+                  {player.jerseyNumber && (
+                    <View className="absolute -bottom-0.5 -right-0.5 bg-dark rounded-full w-4 h-4 items-center justify-center border border-white">
+                      <Text className="text-white font-black text-[8px]">
+                        {player.jerseyNumber}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+
+                {/* Badge Position */}
+                <View
+                  className={`w-6 h-6 rounded-full items-center justify-center mr-3 bg-gray-100`}
+                >
+                  <Text className="text-xs font-bold text-gray-500">
+                    {player.position}
+                  </Text>
+                </View>
+
+                {/* Nom du joueur */}
+                <Text className="flex-1 text-dark font-bold">{player.name}</Text>
+
+                {/* Barres de niveau */}
+                <View className="flex-row">
+                  {[...Array(player.level || 0)].map((_, i) => (
+                    <View
+                      key={i}
+                      className={`w-1.5 h-1.5 rounded-full mr-1 ${
+                        i < player.level ? config.bg : "bg-gray-200"
+                      }`}
+                    />
+                  ))}
+                </View>
               </View>
-            </View>
-          ))}
+            );
+          })}
         </View>
       </View>
     );
