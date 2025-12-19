@@ -10,7 +10,9 @@ export default function HistoryScreen() {
   // Récupération correcte depuis le store (history et non sessions)
   const history = useSessionStore((state) => state.sessions);
   const deleteFromHistory = useSessionStore((state) => state.deleteSession);
-  const loadSessionFromHistory = useSessionStore((state) => state.loadSessionFromHistory);
+  const loadSessionFromHistory = useSessionStore(
+    (state) => state.loadSessionFromHistory
+  );
   const clearHistory = useSessionStore(
     (state) =>
       state.clearHistory || (() => useSessionStore.setState({ history: [] }))
@@ -124,14 +126,26 @@ export default function HistoryScreen() {
           {/* Liste de toutes les équipes */}
           <View className="mt-2 gap-1">
             {Object.keys(item.teams).map((teamKey, index) => {
-              const colors = ["bg-blue-500", "bg-red-500", "bg-green-500", "bg-orange-500"];
-              const avgKey = `avgLevel${teamKey.charAt(0).toUpperCase() + teamKey.slice(1)}`;
+              const colors = [
+                "bg-blue-500",
+                "bg-red-500",
+                "bg-green-500",
+                "bg-orange-500",
+              ];
+              const avgKey = `avgLevel${
+                teamKey.charAt(0).toUpperCase() + teamKey.slice(1)
+              }`;
               const avgLevel = Math.round(item.stats?.[avgKey] || 0);
 
               return (
-                <View key={teamKey} className="flex-row items-center justify-between">
+                <View
+                  key={teamKey}
+                  className="flex-row items-center justify-between"
+                >
                   <View className="flex-row items-center flex-1">
-                    <View className={`w-2 h-6 ${colors[index]} rounded-full mr-2`} />
+                    <View
+                      className={`w-2 h-6 ${colors[index]} rounded-full mr-2`}
+                    />
                     <Text className="font-bold text-dark text-xs">
                       Équipe {index + 1}
                     </Text>
@@ -203,7 +217,7 @@ export default function HistoryScreen() {
           />
 
           {/* Footer : Bouton Clear All */}
-          {history?.length > 0 && (
+          {/* {history?.length > 0 && (
             <View className="absolute bottom-8 align-center self-center">
               <TouchableOpacity
                 onPress={handleClearAll}
@@ -215,7 +229,7 @@ export default function HistoryScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
-          )}
+          )} */}
         </>
       )}
     </View>

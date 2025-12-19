@@ -38,6 +38,9 @@ export default function ManageCompetitionScreen() {
   // Modal pour sélectionner le vainqueur (knockout)
   const [showWinnerModal, setShowWinnerModal] = useState(false);
 
+  // État pour la pagination des journées (league format)
+  const [currentRoundIndex, setCurrentRoundIndex] = useState(0);
+
   if (!currentCompetition) {
     return (
       <View className="flex-1 bg-gray-50 items-center justify-center p-8">
@@ -548,13 +551,13 @@ export default function ManageCompetitionScreen() {
               teamKeys={Object.keys(currentCompetition.teams)}
             />
 
-            {/* Matchs par journées */}
+            {/* Matchs par journées - Vue paginée */}
             <Text className="font-bold text-dark text-lg mb-3 mt-6">
               ⚽ Calendrier ({currentCompetition.matches.filter((m) => m.status === "played").length}/
               {currentCompetition.matches.length} matchs)
             </Text>
 
-            {/* Grouper les matchs par journée */}
+            {/* Grouper les matchs par journée et afficher avec pagination */}
             {(() => {
               const matchesByRound = {};
               currentCompetition.matches.forEach((match) => {
@@ -566,91 +569,156 @@ export default function ManageCompetitionScreen() {
               });
 
               const sortedRounds = Object.keys(matchesByRound).sort((a, b) => parseInt(a) - parseInt(b));
+              const totalRounds = sortedRounds.length;
 
-              return sortedRounds.map((round, index) => {
-                const matches = matchesByRound[round];
-                const playedCount = matches.filter((m) => m.status === "played").length;
-                const allPlayed = playedCount === matches.length;
+              // S'assurer que l'index est valide
+              const validIndex = Math.min(currentRoundIndex, totalRounds - 1);
+              if (validIndex !== currentRoundIndex) {
+                setCurrentRoundIndex(validIndex);
+              }
 
-                // Vérifier si la journée précédente est terminée
-                const previousRound = index > 0 ? sortedRounds[index - 1] : null;
-                const isPreviousRoundComplete = previousRound
-                  ? matchesByRound[previousRound].every((m) => m.status === "played")
-                  : true;
+              const currentRound = sortedRounds[validIndex];
+              const matches = matchesByRound[currentRound];
+              const playedCount = matches.filter((m) => m.status === "played").length;
+              const allPlayed = playedCount === matches.length;
 
-                const isLocked = !isPreviousRoundComplete && !isReadOnly;
+              // Vérifier si la journée précédente est terminée
+              const isPreviousRoundComplete = validIndex === 0 ||
+                matchesByRound[sortedRounds[validIndex - 1]].every((m) => m.status === "played");
 
-                return (
-                  <View key={round} className="mb-6">
-                    <View className="flex-row items-center justify-between mb-3">
-                      <View className="flex-row items-center">
-                        <View
-                          className={`w-2 h-8 rounded-full mr-3 ${
-                            allPlayed
-                              ? "bg-green-500"
-                              : isLocked
-                              ? "bg-gray-300"
-                              : "bg-primary"
-                          }`}
-                        />
-                        <Text className="font-black text-dark text-lg">
-                          Journée {round}
-                        </Text>
-                        {isLocked && (
-                          <View className="ml-2 bg-gray-100 px-2 py-1 rounded-full flex-row items-center">
-                            <Ionicons name="lock-closed" size={12} color="#9CA3AF" />
-                            <Text className="text-gray-500 text-xs font-bold ml-1">
-                              Verrouillée
-                            </Text>
-                          </View>
-                        )}
-                      </View>
-                      <View
-                        className={`px-3 py-1 rounded-full ${
-                          allPlayed
-                            ? "bg-green-50"
-                            : isLocked
-                            ? "bg-gray-50"
-                            : "bg-blue-50"
+              const isLocked = !isPreviousRoundComplete && !isReadOnly;
+
+              return (
+                <>
+                  {/* Sélecteur de journée avec navigation */}
+                  <View className="bg-white rounded-2xl p-4 mb-4 shadow-sm border border-gray-100">
+                    <View className="flex-row items-center justify-between mb-4">
+                      <TouchableOpacity
+                        onPress={() => setCurrentRoundIndex(Math.max(0, currentRoundIndex - 1))}
+                        disabled={currentRoundIndex === 0}
+                        className={`w-12 h-12 rounded-xl items-center justify-center ${
+                          currentRoundIndex === 0 ? "bg-gray-100" : "bg-primary"
                         }`}
                       >
-                        <Text
-                          className={`text-xs font-bold ${
-                            allPlayed
-                              ? "text-green-600"
-                              : isLocked
-                              ? "text-gray-400"
-                              : "text-blue-600"
-                          }`}
-                        >
-                          {playedCount}/{matches.length}
+                        <Ionicons
+                          name="chevron-back"
+                          size={24}
+                          color={currentRoundIndex === 0 ? "#D1D5DB" : "#FFFFFF"}
+                        />
+                      </TouchableOpacity>
+
+                      <View className="flex-1 mx-4">
+                        <View className="flex-row items-center justify-center mb-2">
+                          <View
+                            className={`w-2 h-8 rounded-full mr-2 ${
+                              allPlayed
+                                ? "bg-green-500"
+                                : isLocked
+                                ? "bg-gray-300"
+                                : "bg-primary"
+                            }`}
+                          />
+                          <Text className="font-black text-dark text-xl">
+                            Journée {currentRound}
+                          </Text>
+                          {isLocked && (
+                            <View className="ml-2 bg-gray-100 px-2 py-1 rounded-full flex-row items-center">
+                              <Ionicons name="lock-closed" size={12} color="#9CA3AF" />
+                            </View>
+                          )}
+                        </View>
+                        <View className="flex-row items-center justify-center">
+                          <View
+                            className={`px-3 py-1 rounded-full ${
+                              allPlayed
+                                ? "bg-green-50"
+                                : isLocked
+                                ? "bg-gray-50"
+                                : "bg-blue-50"
+                            }`}
+                          >
+                            <Text
+                              className={`text-xs font-bold ${
+                                allPlayed
+                                  ? "text-green-600"
+                                  : isLocked
+                                  ? "text-gray-400"
+                                  : "text-blue-600"
+                              }`}
+                            >
+                              {playedCount}/{matches.length} matchs
+                            </Text>
+                          </View>
+                        </View>
+                      </View>
+
+                      <TouchableOpacity
+                        onPress={() => setCurrentRoundIndex(Math.min(totalRounds - 1, currentRoundIndex + 1))}
+                        disabled={currentRoundIndex === totalRounds - 1}
+                        className={`w-12 h-12 rounded-xl items-center justify-center ${
+                          currentRoundIndex === totalRounds - 1 ? "bg-gray-100" : "bg-primary"
+                        }`}
+                      >
+                        <Ionicons
+                          name="chevron-forward"
+                          size={24}
+                          color={currentRoundIndex === totalRounds - 1 ? "#D1D5DB" : "#FFFFFF"}
+                        />
+                      </TouchableOpacity>
+                    </View>
+
+                    {/* Indicateur de progression des journées */}
+                    <View className="flex-row items-center justify-center gap-1">
+                      {sortedRounds.map((round, idx) => {
+                        const roundMatches = matchesByRound[round];
+                        const roundComplete = roundMatches.every((m) => m.status === "played");
+                        const isCurrentRound = idx === validIndex;
+
+                        return (
+                          <TouchableOpacity
+                            key={round}
+                            onPress={() => setCurrentRoundIndex(idx)}
+                            className={`h-2 rounded-full ${
+                              isCurrentRound
+                                ? "w-8"
+                                : "w-2"
+                            } ${
+                              roundComplete
+                                ? "bg-green-500"
+                                : isCurrentRound
+                                ? "bg-primary"
+                                : "bg-gray-200"
+                            }`}
+                          />
+                        );
+                      })}
+                    </View>
+                  </View>
+
+                  {/* Message de verrouillage si nécessaire */}
+                  {isLocked && (
+                    <View className="bg-gray-50 p-4 rounded-2xl mb-3 border border-gray-200">
+                      <View className="flex-row items-center">
+                        <Ionicons name="information-circle" size={20} color="#9CA3AF" />
+                        <Text className="text-gray-600 text-sm ml-2 flex-1">
+                          Terminez la journée précédente pour débloquer
                         </Text>
                       </View>
                     </View>
+                  )}
 
-                    {isLocked && (
-                      <View className="bg-gray-50 p-4 rounded-2xl mb-3 border border-gray-200">
-                        <View className="flex-row items-center">
-                          <Ionicons name="information-circle" size={20} color="#9CA3AF" />
-                          <Text className="text-gray-600 text-sm ml-2 flex-1">
-                            Terminez la journée précédente pour débloquer
-                          </Text>
-                        </View>
-                      </View>
-                    )}
-
-                    <View style={{ opacity: isLocked ? 0.5 : 1 }}>
-                      {matches.map((match) => (
-                        <MatchCard
-                          key={match.id}
-                          match={match}
-                          onPress={isLocked ? () => {} : handleOpenScoreModal}
-                        />
-                      ))}
-                    </View>
+                  {/* Matchs de la journée sélectionnée */}
+                  <View style={{ opacity: isLocked ? 0.5 : 1 }}>
+                    {matches.map((match) => (
+                      <MatchCard
+                        key={match.id}
+                        match={match}
+                        onPress={isLocked ? () => {} : handleOpenScoreModal}
+                      />
+                    ))}
                   </View>
-                );
-              });
+                </>
+              );
             })()}
           </>
         )}
